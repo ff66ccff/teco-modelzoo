@@ -145,7 +145,8 @@ Tecorigin ModelZoo使用[TCAP\_DLLogger](https://github.com/Tecorigin/tcap_dllo
 关于日志添加的详细代码，参考以下示例：
 [tcap_dllogger 示例](../contrib/Classification/ResNet/image_classification/train/training.py#L44)
 
-注意点：由于太初卡是单卡四核组结构，在适配tcap_dllogger工具时，需要适配成单核组的train.ips，bs，train.loss
+***注意点：由于太初卡是单卡四核组结构，在适配tcap_dllogger工具时，需要适配成单核组（单rank）的train.ips，bs，train.loss的排布
+
 
 ## 3. 准备训练启动文件
 
