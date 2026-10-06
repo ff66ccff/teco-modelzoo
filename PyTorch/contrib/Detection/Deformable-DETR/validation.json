@@ -1,0 +1,370 @@
+{
+  "date": "2026-10-06",
+  "branch_baseline": "690a4650fd5ca975af68f2864067449036ab3295",
+  "official_commit": "1bda1f956a326d2601302413e4618c0fd109e799",
+  "focused": {
+    "status": "pass",
+    "official_commit": "1bda1f956a326d2601302413e4618c0fd109e799",
+    "image_ids": [
+      1,
+      2
+    ],
+    "model_native_forward_calls": 12,
+    "finite_parameter_gradient_count": 286,
+    "weighted_loss": 15.6343355178833,
+    "checks": {
+      "encoder": {
+        "shapes": [
+          [
+            2,
+            494,
+            8,
+            32
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            494,
+            8,
+            1,
+            4,
+            2
+          ],
+          [
+            2,
+            494,
+            8,
+            1,
+            4
+          ]
+        ],
+        "max_abs": {
+          "forward": 1.9669532775878906e-06,
+          "grad_value": 3.725290298461914e-09,
+          "grad_locations": 9.685754776000977e-08,
+          "grad_weights": 4.470348358154297e-08
+        }
+      },
+      "decoder": {
+        "shapes": [
+          [
+            2,
+            494,
+            8,
+            32
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            300,
+            8,
+            1,
+            4,
+            2
+          ],
+          [
+            2,
+            300,
+            8,
+            1,
+            4
+          ]
+        ],
+        "max_abs": {
+          "forward": 2.5033950805664062e-06,
+          "grad_value": 1.4901161193847656e-08,
+          "grad_locations": 3.0994415283203125e-06,
+          "grad_weights": 2.5331974029541016e-07
+        }
+      }
+    },
+    "forward_tolerance": {
+      "atol": 0.0002,
+      "rtol": 0.0002
+    },
+    "gradient_tolerance": {
+      "atol": 2e-05,
+      "rtol": 0.001
+    },
+    "scope": "actual model boundaries; CPU oracle is explicit and never a model fallback"
+  },
+  "resume": {
+    "status": "exact_checkpoint_restore_and_continued_optimizer_updates_pass",
+    "restored_tensor_counts": {
+      "model": 549,
+      "optimizer": 858,
+      "scheduler": 0,
+      "rng": 3
+    },
+    "resumed_optimizer_step": 4,
+    "head_preserved_and_updated": true,
+    "batch_order_and_shapes_match": true,
+    "rng_scheduler_restored_exactly": true,
+    "continuous_repeat_model_max_abs_drift": 7.62641429901123e-05,
+    "continuous_vs_resume_model_max_abs_drift": 7.621943950653076e-05,
+    "continuous_losses": [
+      16.848045349121094,
+      14.551071166992188,
+      15.506840705871582,
+      13.703553199768066
+    ],
+    "repeat_losses": [
+      16.848045349121094,
+      14.551332473754883,
+      15.507165908813477,
+      13.70328426361084
+    ],
+    "resumed_losses": [
+      16.848045349121094,
+      14.551429748535156,
+      15.506794929504395,
+      13.703831672668457
+    ],
+    "trajectory_tolerance_first_test": {
+      "atol": 2e-05,
+      "rtol": 0.0001,
+      "status": "failed_preserved"
+    },
+    "scope": "resume starts exactly from its saved state; subsequent native reduction is not bitwise deterministic",
+    "no_trajectory_tolerance_widening": true,
+    "no_competition_accuracy_claim": true
+  },
+  "steady": {
+    "status": "bounded_training_checkpoint",
+    "epoch": 0,
+    "batch_cursor": 345,
+    "global_step": 345,
+    "invocation_steps": 341,
+    "completed_epochs": [],
+    "training_seconds": 330.20339796599,
+    "last_loss": 10.272309303283691,
+    "evaluation": {
+      "images": 32,
+      "full_test": false,
+      "stats": {
+        "class_error": 56.89541435241699,
+        "loss": 11.46529769897461,
+        "loss_ce": 1.2936141043901443,
+        "loss_bbox": 0.22488610073924065,
+        "loss_giou": 0.2543818363919854,
+        "loss_ce_0": 1.5934897139668465,
+        "loss_bbox_0": 0.27925098594278097,
+        "loss_giou_0": 0.29148047138005495,
+        "loss_ce_1": 1.4725104570388794,
+        "loss_bbox_1": 0.24821257591247559,
+        "loss_giou_1": 0.2642017537727952,
+        "loss_ce_2": 1.3990745171904564,
+        "loss_bbox_2": 0.24530267156660557,
+        "loss_giou_2": 0.26473486982285976,
+        "loss_ce_3": 1.3198003135621548,
+        "loss_bbox_3": 0.24787820223718882,
+        "loss_giou_3": 0.2678656652569771,
+        "loss_ce_4": 1.3097452148795128,
+        "loss_bbox_4": 0.23031975282356143,
+        "loss_giou_4": 0.2585482355207205,
+        "loss_ce_unscaled": 0.6468070521950722,
+        "class_error_unscaled": 56.89541435241699,
+        "loss_bbox_unscaled": 0.04497722035739571,
+        "loss_giou_unscaled": 0.1271909181959927,
+        "cardinality_error_unscaled": 294.65625,
+        "loss_ce_0_unscaled": 0.7967448569834232,
+        "loss_bbox_0_unscaled": 0.0558501974446699,
+        "loss_giou_0_unscaled": 0.14574023569002748,
+        "cardinality_error_0_unscaled": 293.4375,
+        "loss_ce_1_unscaled": 0.7362552285194397,
+        "loss_bbox_1_unscaled": 0.04964251501951367,
+        "loss_giou_1_unscaled": 0.1321008768863976,
+        "cardinality_error_1_unscaled": 297.0,
+        "loss_ce_2_unscaled": 0.6995372585952282,
+        "loss_bbox_2_unscaled": 0.0490605344530195,
+        "loss_giou_2_unscaled": 0.13236743491142988,
+        "cardinality_error_2_unscaled": 296.5625,
+        "loss_ce_3_unscaled": 0.6599001567810774,
+        "loss_bbox_3_unscaled": 0.049575640936382115,
+        "loss_giou_3_unscaled": 0.13393283262848854,
+        "cardinality_error_3_unscaled": 296.09375,
+        "loss_ce_4_unscaled": 0.6548726074397564,
+        "loss_bbox_4_unscaled": 0.0460639507509768,
+        "loss_giou_4_unscaled": 0.12927411776036024,
+        "cardinality_error_4_unscaled": 295.09375,
+        "coco_eval_bbox": [
+          0.12684317516911092,
+          0.1684324871949419,
+          0.1407010137034864,
+          0.11533769448373409,
+          0.21854870991970524,
+          0.1639533457418765,
+          0.12410675381263617,
+          0.21096949891067537,
+          0.22456427015250544,
+          0.21666666666666667,
+          0.30454545454545456,
+          0.2734375
+        ]
+      }
+    },
+    "native_calls": {
+      "forward": 4284,
+      "backward": 4092
+    },
+    "peak_allocated_mib": 2771.173828125,
+    "peak_reserved_mib": 4304.0,
+    "checkpoint": "/dev/shm/scu-voc-training-entry-20261006-0645/steady330/checkpoint.pth",
+    "limits": [
+      "single-device FP32 eager first-order MSDA; no AMP/DDP claim",
+      "official CPU Hungarian matching is retained",
+      "subset AP is diagnostic and does not meet the full test gate"
+    ]
+  },
+  "post_steady_changes": "adaptation comments, source manifest, whitespace and LF only; training entry AST unchanged",
+  "unchanged_function_asts": [
+    "sha256",
+    "atomic_json",
+    "configuration",
+    "rng_state",
+    "restore_rng",
+    "assert_restored",
+    "save_checkpoint",
+    "load_pretrained",
+    "make_optimizer",
+    "install_audit",
+    "batch_indices",
+    "main",
+    "evaluate_model"
+  ],
+  "optimization_training_loop_ast_unchanged": true,
+  "clean_checkout_wrapper_gate": {
+    "status": "pass",
+    "exported_source_file_count": 43,
+    "git_head": "18614f5100fd0893ae5ba6055f47a6a66b99dab6",
+    "entry_sha256": "0378feb7fdeb155c10a1d7307a2f28882d1d1997939ad6810bfd7c504fead29a",
+    "vendor_manifest_sha256": "4bc34de500379e8da9d8116667b2bb6e0d302fed5e8e25f54f2f51d951d2280d",
+    "load": {
+      "classifier_reinitialized": false,
+      "optimizer_restored": true,
+      "scheduler_restored": true,
+      "rng_restored": true,
+      "epoch": 0,
+      "batch_cursor": 345,
+      "global_step": 345,
+      "exact_starting_state_tensor_counts": {
+        "model": 549,
+        "optimizer": 858,
+        "scheduler": 0,
+        "rng": 3
+      }
+    },
+    "result": {
+      "status": "bounded_training_checkpoint",
+      "epoch": 0,
+      "batch_cursor": 346,
+      "global_step": 346,
+      "invocation_steps": 1,
+      "completed_epochs": [],
+      "training_seconds": 0.959934867976699,
+      "last_loss": 10.033727645874023,
+      "evaluation": {
+        "images": 32,
+        "full_test": false,
+        "stats": {
+          "class_error": 56.89541435241699,
+          "loss": 11.45258229970932,
+          "loss_ce": 1.2872515134513378,
+          "loss_bbox": 0.23062013927847147,
+          "loss_giou": 0.2550710067152977,
+          "loss_ce_0": 1.5941015928983688,
+          "loss_bbox_0": 0.2748991707339883,
+          "loss_giou_0": 0.29060779325664043,
+          "loss_ce_1": 1.4712013974785805,
+          "loss_bbox_1": 0.24725539470091462,
+          "loss_giou_1": 0.26364498771727085,
+          "loss_ce_2": 1.3977917209267616,
+          "loss_bbox_2": 0.24391261208802462,
+          "loss_giou_2": 0.2647112403064966,
+          "loss_ce_3": 1.3185018673539162,
+          "loss_bbox_3": 0.24705857504159212,
+          "loss_giou_3": 0.2687795776873827,
+          "loss_ce_4": 1.3087807334959507,
+          "loss_bbox_4": 0.22995346505194902,
+          "loss_giou_4": 0.25843943003565073,
+          "loss_ce_unscaled": 0.6436257567256689,
+          "class_error_unscaled": 56.89541435241699,
+          "loss_bbox_unscaled": 0.046124027227051556,
+          "loss_giou_unscaled": 0.12753550335764885,
+          "cardinality_error_unscaled": 294.65625,
+          "loss_ce_0_unscaled": 0.7970507964491844,
+          "loss_bbox_0_unscaled": 0.05497983447276056,
+          "loss_giou_0_unscaled": 0.14530389662832022,
+          "cardinality_error_0_unscaled": 293.5625,
+          "loss_ce_1_unscaled": 0.7356006987392902,
+          "loss_bbox_1_unscaled": 0.049451078404672444,
+          "loss_giou_1_unscaled": 0.13182249385863543,
+          "cardinality_error_1_unscaled": 297.0,
+          "loss_ce_2_unscaled": 0.6988958604633808,
+          "loss_bbox_2_unscaled": 0.048782522324472666,
+          "loss_giou_2_unscaled": 0.1323556201532483,
+          "cardinality_error_2_unscaled": 296.625,
+          "loss_ce_3_unscaled": 0.6592509336769581,
+          "loss_bbox_3_unscaled": 0.04941171477548778,
+          "loss_giou_3_unscaled": 0.13438978884369135,
+          "cardinality_error_3_unscaled": 296.125,
+          "loss_ce_4_unscaled": 0.6543903667479753,
+          "loss_bbox_4_unscaled": 0.04599069303367287,
+          "loss_giou_4_unscaled": 0.12921971501782537,
+          "cardinality_error_4_unscaled": 295.1875,
+          "coco_eval_bbox": [
+            0.12707346967032276,
+            0.16861863497048424,
+            0.14110362469241255,
+            0.09057585905649389,
+            0.218283284167108,
+            0.16482353217954765,
+            0.12388888888888888,
+            0.2127124183006536,
+            0.22674291938997823,
+            0.21666666666666667,
+            0.30568181818181817,
+            0.2796875
+          ]
+        }
+      },
+      "native_calls": {
+        "forward": 204,
+        "backward": 12
+      },
+      "peak_allocated_mib": 1329.58154296875,
+      "peak_reserved_mib": 3140.0,
+      "checkpoint": "/dev/shm/scu-voc-training-entry-20261006-0645/clean-wrapper/checkpoint.pth",
+      "limits": [
+        "single-device FP32 eager first-order MSDA; no AMP/DDP claim",
+        "official CPU Hungarian matching is retained",
+        "subset AP is diagnostic and does not meet the full test gate"
+      ]
+    },
+    "scope": "local Git bundle, clean Linux checkout, public test.sh wrapper, new output directory"
+  },
+  "official_repository_hooks": {
+    "status": "pass",
+    "exit_code": 0,
+    "hooks": [
+      "tools/copyright/file_check.hook",
+      "tools/copyright/license_check.hook",
+      "tools/copyright/readme_check.hook",
+      "tools/module/check_debug_usage.hook"
+    ],
+    "source": "unmodified hooks at teco-modelzoo main 45e6b89185c8e6e081ce58d759cd62b8d15a1f5c",
+    "python": "/usr/local/python/bin/python3.12",
+    "scope": "local execution; GitHub CI is not claimed"
+  },
+  "full_20_epochs": "pending",
+  "full_4952_image_AP": "pending",
+  "generation_32_tokens": "not applicable to object detection; real forward/loss/backward/optimizer/eval tested",
+  "performance_improvement_claim": false,
+  "official_py311_stack": "not verified; repository AGENTS.md requires factory py312"
+}

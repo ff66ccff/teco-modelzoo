@@ -1,0 +1,192 @@
+{
+  "repository": "https://github.com/Tecorigin/Deformable-DETR",
+  "commit": "1bda1f956a326d2601302413e4618c0fd109e799",
+  "files": [
+    {
+      "path": "LICENSE",
+      "upstream_sha256": "068413f8cf5e42e34d6e171e45a779df6dbea0a18249c0a223a3878e6de3cb27",
+      "delivered_sha256": "068413f8cf5e42e34d6e171e45a779df6dbea0a18249c0a223a3878e6de3cb27"
+    },
+    {
+      "path": "datasets/__init__.py",
+      "upstream_sha256": "763dd318e74ca1140a2658f6e6b0fac740570bb2129eca151d9ac2c765573660",
+      "delivered_sha256": "4cbfeefab7cc75ba62c2d5c72ab538c5dba71d7131c77478b2bdf3ac75871f66",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "datasets/coco.py",
+      "upstream_sha256": "c282cf92a0d9cf8f301cab6a06d833687af24004e7b89979855e011530b8098c",
+      "delivered_sha256": "fde6fcd7075e41452b534b4a4f2d5e67b0a63ffc39d914aa79ac5138c7eb3275",
+      "modification": "license-required adaptation comment and whitespace only; AST unchanged"
+    },
+    {
+      "path": "datasets/coco_eval.py",
+      "upstream_sha256": "a7ea9dd5728e5658e187429e4576da59fc348e30d7affc5d893308a5a26c290b",
+      "delivered_sha256": "7bd288608ec6066171cf3a40c5a2f922dba8bfa3959b5b8d3c5c2789a8fe737d",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "datasets/coco_panoptic.py",
+      "upstream_sha256": "4f892f3e21a24dc8c7d3feffdd2d60c0351473a3aa11c8cc7d2d9ebcbbc328cf",
+      "delivered_sha256": "2e670d0d2bc782274b7bd2a0a6baac9c6f63c52f8239c61f37d65a401f5c1351",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "datasets/data_prefetcher.py",
+      "upstream_sha256": "57b79dadba7c13522fc6a2c89bb637aefc921b2489e0a0713de85d93a7921c76",
+      "delivered_sha256": "9b342efaa63671aa9ae7bff3120acd80250f97edf689d043179b61e85f1d2334",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "datasets/panoptic_eval.py",
+      "upstream_sha256": "ee2263b5ea673904f3a225256c29a9b1e1314a26bc231b0785115260e363ae10",
+      "delivered_sha256": "e99000df31ef227bc2b7be78d0d42c55ba7d90e318a9b5220dba9d9c49b7006f",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "datasets/samplers.py",
+      "upstream_sha256": "790d1ee56c57fafc4f126741031339c2acae39b845c256ee28cebb2fb323a635",
+      "delivered_sha256": "e2fe578d4e92cd58be371043ea2befdfff739915d85db99dfa9b3e60646c6138",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "datasets/torchvision_datasets/__init__.py",
+      "upstream_sha256": "ff554716f31b43c6e05cb0e6a6e4d04c0df392181a5bb43e7f6e6af07a5f3bb1",
+      "delivered_sha256": "a77dc4cf80a0b37467242d80488bd2b17a5f7498c4bf782813f82364ccf9d804",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "datasets/torchvision_datasets/coco.py",
+      "upstream_sha256": "3ef976cc4c1ba8cb483af6a636f9dbafde7db13ce8c57998d65e2ca419359b95",
+      "delivered_sha256": "ee775fef265e2d2de993f0478b0de35272e7c95ee84d0041bf58c769f2db4a0f",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "datasets/transforms.py",
+      "upstream_sha256": "074bee7d89c34f1b58ae0d2e47141e12b34aecd2ff68facdf04b1a7f1854ffcb",
+      "delivered_sha256": "80abf704d35eccb3a7358378236ded8b320dcb591b0aa8c0d7eb9319ce169479",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "engine.py",
+      "upstream_sha256": "86efacb0fafaaa16ec61becad450a4e8316d5ccf16da0ae4f868aef2b8af995f",
+      "delivered_sha256": "782acce607b4c70c2f449d0595ea2e844474fff93873d3b6579f9bc95ba43737",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "main.py",
+      "upstream_sha256": "e5e05bebd0374029c38196220dd8169b3b09f9d22593ff17f83030c4522036a1",
+      "delivered_sha256": "5a3c009f3483dd58f83e244174e4318ab35bf754d9a2f1c5b8480b66ac156626",
+      "modification": "license-required adaptation comment and whitespace only; AST unchanged"
+    },
+    {
+      "path": "models/__init__.py",
+      "upstream_sha256": "c22117d2e50dda66041fbe6882c465f0ea163ca37b328afae26f6c5eaf705a42",
+      "delivered_sha256": "9539d22473a927265b72fd7d7c9f1d1159c7d3ae1a0fe8750ecba0f25c3dc247",
+      "modification": "license-required adaptation comment and whitespace only; AST unchanged"
+    },
+    {
+      "path": "models/backbone.py",
+      "upstream_sha256": "50ffca55388a4485ec0ba363b139eb2411e974a54cf6141dacd93c81ae683a5f",
+      "delivered_sha256": "8a5e6b6dd56e9065f31ac6ddd0894678b8ef7ba5f5f9c72c3ed5f1220f72d014",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "models/deformable_detr.py",
+      "upstream_sha256": "fb2dde0543af3d0ec457ffd63106ed2167edf58299a8ffc3ce02447d2fd0426e",
+      "delivered_sha256": "02951cb0d5d92a547f2a788ceaae2ebac1b80b8aae8e0ff9d81769aa1d1b888b",
+      "modification": "license-required adaptation comment and whitespace only; AST unchanged"
+    },
+    {
+      "path": "models/deformable_transformer.py",
+      "upstream_sha256": "bc33ad1e3149be1903588e246b02148019c8c1339ece70bfc24cbf4d0a143bfc",
+      "delivered_sha256": "916b2428f30303129bfce5f8ea57400638a4f23ba8fd3d4ba073556cd2cf3b0f",
+      "modification": "license-required adaptation comment and whitespace only; AST unchanged"
+    },
+    {
+      "path": "models/matcher.py",
+      "upstream_sha256": "b0a75118b3870e4cef7006e91292229dd9b711cf04177d52f8534bfc48360c99",
+      "delivered_sha256": "954868212da6f9035a234ba81019905c73f264d740865250ce3da30a52c07673",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "models/ops/functions/__init__.py",
+      "upstream_sha256": "e1a39c1cf23562b11d696d81f95cf8bef368c48149b681d1eadc7f6d188edd3a",
+      "delivered_sha256": "0e377e6d60d4d8c1680d05d6ba303576187f426fc14eca175e34e1b17993d31c",
+      "modification": "license-required adaptation comment and whitespace only; AST unchanged"
+    },
+    {
+      "path": "models/ops/functions/ms_deform_attn_func.py",
+      "upstream_sha256": "dd9906037ce7dc45b9ef6f39d4934bb4dddefc3e09049024496827714b6738bc",
+      "delivered_sha256": "45b830a88917ca6e96e229e7a21b7495181ed1379e8cb8b6c08b349892ec7a90",
+      "modification": "paired native import-bound MSDA; original CPU oracle preserved"
+    },
+    {
+      "path": "models/ops/modules/__init__.py",
+      "upstream_sha256": "3a40cdcd146fc93c3f4ba9702924582f6502e5fcd1ceccf687e9d0e6ff2d7b5f",
+      "delivered_sha256": "94a6849620939bd4b92515ced50feaa45743caa47645dc6bc83e9ae145485053",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "models/ops/modules/ms_deform_attn.py",
+      "upstream_sha256": "1a093690d4fd1cb50aadba936f3450b54f7919dbed7dc68410a1ee622a40e408",
+      "delivered_sha256": "e6879cac0f745bf07a7621e2f3c5098c8ee2d560d95ae799fdea015de874bb88",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "models/position_encoding.py",
+      "upstream_sha256": "fa32b437513885daf4649aea1f3ba847b62d22de7625e4d3ad2fc6cabd81733f",
+      "delivered_sha256": "ec4e7a4a8f09d0798c0c92bf91f4f2ac6dc3211e678b843148631d54721824ac",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "models/segmentation.py",
+      "upstream_sha256": "04f68988fe053e1aeba6a074070d057bf38aa7df61ae779fc6cf2295e2b30a08",
+      "delivered_sha256": "1790b2c5cce50594aa778d7a2c250c2486ebace488a2f6657ba88757fd31b2e9",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "util/__init__.py",
+      "upstream_sha256": "981f3946f46aa50571bb2c33c0b0c183800f30c7c591d698398e374912ec2ce7",
+      "delivered_sha256": "c194b57fd9c460fcab949614a097e9e137ffcc45cc0a1b5f05534fb44128a229",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "util/box_ops.py",
+      "upstream_sha256": "8f3f9128d14f6a5854c40c66c1602c020656d4e12a436fee1e2d13937e51d5fb",
+      "delivered_sha256": "b8af6107255423ba7411eb6cfd57620a45d14f7613ce9d5f3854e7f735e15f2b",
+      "modification": "license-required adaptation comment only; AST unchanged"
+    },
+    {
+      "path": "util/misc.py",
+      "upstream_sha256": "4ed3ff13f0051b14ef1c13941061f49aaaa5c0853cda65d8c9e5fa0d4a122874",
+      "delivered_sha256": "df6db288ff07696f30be67f13590d6c0f9cfa87118834ced2aaa22ed3a1b258c",
+      "modification": "license-required adaptation comment and whitespace only; AST unchanged"
+    },
+    {
+      "path": "util/plot_utils.py",
+      "upstream_sha256": "389ab44a545f553fbd99e838acfebb90adbb5819ba7668d0b895b5a317a057ae",
+      "delivered_sha256": "a23ca599878136421d0ca497f7948e59f9eafaadb870c2a3c1cac1a27197e9e2",
+      "modification": "license-required adaptation comment and whitespace only; AST unchanged"
+    }
+  ],
+  "modifications": {
+    "models/ops/functions/ms_deform_attn_func.py": "Replace CUDA extension import with import-bound paired tecoops MSDA. Preserve explicit CPU reference unchanged."
+  },
+  "logger": {
+    "repository": "https://github.com/Tecorigin/tcap_dllogger",
+    "commit": "6997d7d15b1b23e9000f9e5c5cd7536b6e1b299e",
+    "files": {
+      "__init__.py": "478698f0a5afbf9a5bd67bf71142a2b78b54da3794112713ac0f5100b0c1c60b",
+      "logger.py": "b9a02e149179456c57a00695cae70701ff04ae59a17fc46d8d451da0b9253e28",
+      "LICENSE": "3633730c10a4b25e80a3db86dc3ed5313bf940dd9881f15e5c1a8dea5a55b9b8"
+    },
+    "scope": "local vendored dependency; no global installation or modification",
+    "upstream_files": {
+      "__init__.py": "2fc1716dcdb29f3a472c72090c535f8d8cc64734251d5be1bb4e706f5e6728c0",
+      "logger.py": "481a90f200d958429da37fb6f5a40610ddc977802f08fce9e7826e06abd0a6b9",
+      "LICENSE": "3633730c10a4b25e80a3db86dc3ed5313bf940dd9881f15e5c1a8dea5a55b9b8"
+    },
+    "modification": "license-required adaptation comments only; AST unchanged"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "repository": "https://github.com/Tecorigin/tcap_dllogger",
+  "commit": "6997d7d15b1b23e9000f9e5c5cd7536b6e1b299e",
+  "files": {
+    "__init__.py": "478698f0a5afbf9a5bd67bf71142a2b78b54da3794112713ac0f5100b0c1c60b",
+    "logger.py": "b9a02e149179456c57a00695cae70701ff04ae59a17fc46d8d451da0b9253e28",
+    "LICENSE": "3633730c10a4b25e80a3db86dc3ed5313bf940dd9881f15e5c1a8dea5a55b9b8"
+  },
+  "scope": "local vendored dependency; no global installation or modification",
+  "upstream_files": {
+    "__init__.py": "2fc1716dcdb29f3a472c72090c535f8d8cc64734251d5be1bb4e706f5e6728c0",
+    "logger.py": "481a90f200d958429da37fb6f5a40610ddc977802f08fce9e7826e06abd0a6b9",
+    "LICENSE": "3633730c10a4b25e80a3db86dc3ed5313bf940dd9881f15e5c1a8dea5a55b9b8"
+  },
+  "modification": "license-required adaptation comments only; AST unchanged"
+}

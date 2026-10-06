@@ -1,0 +1,8 @@
+# Vendor PyTorch / Torch-SDAA / torchvision are provided by the existing TECO environment.
+# Never upgrade them with this file. Native tecoops is built separately from PR #40.
+numpy
+Pillow
+scipy
+pycocotools
+# This exact TCAP source is also vendored locally; no global installation is needed.
+git+https://github.com/Tecorigin/tcap_dllogger.git@6997d7d15b1b23e9000f9e5c5cd7536b6e1b299e

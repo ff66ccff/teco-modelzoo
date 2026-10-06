@@ -1,0 +1,4 @@
+data/
+*.pth
+__pycache__/
+vendor/**/__pycache__/
