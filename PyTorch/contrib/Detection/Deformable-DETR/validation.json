@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-06",
+  "date": "2026-10-07",
   "branch_baseline": "690a4650fd5ca975af68f2864067449036ab3295",
   "official_commit": "1bda1f956a326d2601302413e4618c0fd109e799",
   "focused": {
@@ -362,9 +362,114 @@
     "python": "/usr/local/python/bin/python3.12",
     "scope": "local execution; GitHub CI is not claimed"
   },
-  "full_20_epochs": "pending",
-  "full_4952_image_AP": "pending",
+  "full_20_epochs": {
+    "status": "full_20_epochs_complete",
+    "completed_epochs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "global_step": 50100,
+    "starting_global_step": 346,
+    "invocation_steps": 49754,
+    "final_batch_cursor": 0,
+    "training_seconds": 70952.74116103601,
+    "last_loss": 4.5915398597717285,
+    "step_log_finite_audit": {
+      "records": 49754,
+      "first_global_step": 347,
+      "last_global_step": 50100,
+      "loss_all_finite": true,
+      "loss_min": 0.29965370893478394,
+      "loss_max": 20.846595764160156,
+      "grad_norm_all_finite": true,
+      "grad_norm_min": 50.542022705078125,
+      "grad_norm_max": 58340.19140625,
+      "steps_jsonl_sha256": "16e2d83230f53d6d16a78d6ca02cb025004b22c52726db978651c6ab940afbde"
+    },
+    "native_calls": {
+      "forward": 1191288,
+      "backward": 597048
+    },
+    "peak_allocated_mib": 2771.765625,
+    "peak_reserved_mib": 5862.0,
+    "performance_improvement_claim": false,
+    "completion_exit_code": 0,
+    "completed_epoch_count": 20
+  },
+  "full_4952_image_AP": {
+    "status": "pass_for_py312_full_test_gate",
+    "metric": "coco_eval_bbox[0], COCO AP@[.50:.95]",
+    "value": 0.6013724164870897,
+    "threshold": 0.57,
+    "gate": true,
+    "images": 4952,
+    "full_test": true,
+    "result_limits_context": "The raw limits text about subset AP remains unchanged; this full20 result explicitly has full_test=true and images=4952."
+  },
   "generation_32_tokens": "not applicable to object detection; real forward/loss/backward/optimizer/eval tested",
   "performance_improvement_claim": false,
-  "official_py311_stack": "not verified; repository AGENTS.md requires factory py312"
+  "official_py311_stack": "not verified; official ModelZoo Python 3.11 stack and maintainer CI remain unverified",
+  "full20_run_provenance": {
+    "training_code_commit": "e8d314544ad96a27734172da0dc7382bcb87c6d7",
+    "model_branch_head_at_completion": "9318608eadc40e5ece26e5ac33a6c26f48b0131e",
+    "training_entry_sha256": "0378feb7fdeb155c10a1d7307a2f28882d1d1997939ad6810bfd7c504fead29a",
+    "vendor_manifest_sha256": "4bc34de500379e8da9d8116667b2bb6e0d302fed5e8e25f54f2f51d951d2280d",
+    "source_unchanged_from_training_commit_to_head": true,
+    "unchanged_source_paths": [
+      "models/deformable-detr/train_sdaa.py",
+      "models/deformable-detr/run_scripts/",
+      "models/deformable-detr/vendor/"
+    ],
+    "official_model_commit": "1bda1f956a326d2601302413e4618c0fd109e799",
+    "native_extension_sha256": "4c44e07c3e02f9433416d2afe7c28d55b3b87c6bbac6f40f4b62549af240392a",
+    "native_core_sha256": "ef437793422d1c7b89e4f1680b8430f53c5d28b7b21f3bae908911457853217d",
+    "dataset_counts": {
+      "trainval_images": 5011,
+      "test_images": 4952
+    },
+    "asset_sha256": {
+      "pretrained_sha256": "d442fb2365d6e9640347b2b38686089d13cd55a5c3790d63e3602d079791fed1",
+      "train_json_sha256": "e511d3a0e39f45162887e4d9f0bed63bf8f01e4c421d965445185b72990f1ab5",
+      "val_json_sha256": "14edfb83a2525773c9e5b6e6d4bfa57a866de1cb3ca164c46afe0ac97629b561"
+    },
+    "evidence": {
+      "completion": {
+        "path": "logs/deformable-detr/voc-training-entry-20261006/full20-completion.json",
+        "sha256": "32212e9475116df1f55c8b041a16e76a8ba77cacc7d775e51cc8c2d4ba96f34b"
+      },
+      "result": {
+        "path": "/dev/shm/scu-voc-training-entry-20261006-0645/full20/result.json",
+        "sha256": "aadf3d97c4716070c3e24ff19b064fa46fa2ea5bdc0b472a1a404174d38c2490"
+      },
+      "startup": {
+        "path": "/dev/shm/scu-voc-training-entry-20261006-0645/full20/startup.json",
+        "sha256": "a33c56eac5bee94a92850408a26ef856d7d5e2a4fddd7f7f2f5102664491fc06"
+      },
+      "steps": {
+        "path": "/dev/shm/scu-voc-training-entry-20261006-0645/full20/steps.jsonl",
+        "sha256": "16e2d83230f53d6d16a78d6ca02cb025004b22c52726db978651c6ab940afbde"
+      }
+    },
+    "official_py311_verified": false,
+    "maintainer_ci_verified": false,
+    "competition_adaptation_complete": false
+  }
 }

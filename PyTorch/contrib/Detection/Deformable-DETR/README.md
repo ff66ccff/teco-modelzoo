@@ -2,13 +2,13 @@
 
 本目录提供赛题 5 的 ResNet-50 single-scale 训练、COCO AP 评估和断点续训入口。源码固定为 [Tecorigin/Deformable-DETR @ 1bda1f9](https://github.com/Tecorigin/Deformable-DETR/tree/1bda1f956a326d2601302413e4618c0fd109e799)，保留原网络、损失、增强和 Apache 版权声明；来源及文件哈希见 [vendor/SOURCE.json](vendor/SOURCE.json)。MSDeformAttn 在导入时绑定到 [Teco-Ops PR #40](https://github.com/Tecorigin/teco-ops/pull/40) 的配对原生前向和一阶反向。模型路径不使用 CPU grid_sample；CPU Hungarian matching 按官方实现保留。
 
-当前已通过有界训练、原生梯度参考、检查点恢复和评估入口验证。完整 20 轮及完整 4,952 张测试图 AP 仍待完成，不能标注为精度达标或比赛适配完成。对象检测没有 32-token 生成接口；对应 smoke 为真实 VOC 前向、criterion、反向、优化器更新与检测评估。
+本队厂商 py312 环境已完成 20 轮训练及完整 4,952 张 VOC2007 test 集评估，COCO AP@[.50:.95]=0.6013724164870897，超过本次 0.570 门槛。官方 ModelZoo Python 3.11 环境和 maintainer CI 仍未验证，因此不宣称适配完成。对象检测没有 32-token 生成接口；对应 smoke 为真实 VOC 前向、criterion、反向、优化器更新与检测评估。
 
 ## Environment
 
 使用已有厂商环境，固定 `/home/py312/bin/python`，解析路径为 `/usr/local/python/bin/python3.12`。本轮验证为 Python 3.12.13、PyTorch 2.12.0a0+git0d62256、Torch-SDAA 20260623.8.51.dev0+gitd942f23、driver/runtime 3.2.0，单个 15 GiB 逻辑 SDAA 设备。不升级或改动全局 PyTorch、Torch-SDAA、torchvision 等耦合依赖。非耦合依赖列于 [requirements.txt](requirements.txt)；TCAP logger 固定源码在 `vendor/tcap_dllogger/`，无需全局安装。
 
-官方 [ModelZoo 适配指南](https://github.com/Tecorigin/teco-modelzoo/blob/45e6b89185c8e6e081ce58d759cd62b8d15a1f5c/PyTorch/doc/模型适配指南.md)指定 Python 3.11 / PyTorch 2.7.1，与本队 AGENTS.md 的 py312 硬约束不同。本提交只证明上述 py312 栈；py311 栈未执行，需单独验证，不能据此声称满足官方环境门禁。
+官方 [ModelZoo 适配指南](https://github.com/Tecorigin/teco-modelzoo/blob/45e6b89185c8e6e081ce58d759cd62b8d15a1f5c/PyTorch/doc/模型适配指南.md)指定 Python 3.11 / PyTorch 2.7.1，与本队 AGENTS.md 的 py312 硬约束不同。本提交只证明上述 py312 栈；官方 py311 栈尚未执行；maintainer CI 也未验证。Full20 结果仅说明本队 py312 环境的全测试门槛通过，不表示官方环境门禁或适配完成。
 
 `TECOOPS_API_ROOT` 指向项目独立构建/解包的 `tecoops` 包的父目录，须提供 `ms_deform_attn` 前向及一阶反向。运行时记录实际 extension/core 映射与 SHA-256；本轮验证的 extension 为 `4c44e07c3e02f9433416d2afe7c28d55b3b87c6bbac6f40f4b62549af240392a`，core 为 `ef437793422d1c7b89e4f1680b8430f53c5d28b7b21f3bae908911457853217d`。该构建的 18 个运行源码文件与 PR #40 head `b565d40242473c5a002886ae372944ba2d9070f3` 等价；本轮没有重新构建该 head。
 
@@ -56,18 +56,24 @@ bash test.sh --output-dir /dev/shm/voc-check \
 
 默认每 1,000 步及轮末/有界正常退出时原子覆盖一个 `checkpoint.pth`，不累计多份权重。输出包括 `startup.json`、逐步 `steps.jsonl`、TCAP `sdaa.log`（train.loss/train.ips/val.loss/val.ips，rank=0）、`evaluation.json` 和 `result.json`。运行脚本默认启用原生调用计数，每个训练批次必须有 12 次 native forward 与 12 次 native backward。
 
-## Verification, 2026-10-06
+## Verification, 2026-10-06 and 2026-10-07
 
 | Gate | Result |
 | --- | --- |
 | Actual VOC IDs 1/2, L1 model-boundary CPU oracle | 12 native model calls, 286 finite parameter gradients; forward max error 2.503395e-6, gradient max error 3.099442e-6; original atol/rtol preserved |
 | Checkpoint restore and continued updates | 549 model tensors, 858 optimizer tensors, 3 RNG tensors restored exactly; scheduler/scalars/cursor matched; trained classifier retained, optimizer step 2→4 |
 | Real changing-batch steady training | 341 optimizer updates / 330.203398 s; each batch native forward/backward 12/12; peak allocated 2771.174 MiB, reserved 4304 MiB |
-| Evaluation plumbing | 32 real test images, diagnostic AP only; full 4,952-image gate pending |
+| Evaluation plumbing | 32 real test images remain diagnostic; the full 4,952-image result is recorded separately below |
 | Syntax, clean source wrapper, repository hooks | 43 source files verified, Python syntax and git diff --check pass; four unmodified official hooks pass; public wrapper resumed step 345→346 and evaluated 32 images |
-| Full 20 epochs / official AP≥0.570 | Pending; no performance improvement claimed |
+| Full 20 epochs / full-test AP >= 0.570 | Passed on py312: 20/20 epochs; global step 50,100 (49,754 this invocation); full_test=true on 4,952 images; COCO AP@[.50:.95] 0.6013724164870897. All 49,754 logged loss and grad_norm values finite; 1,191,288 forward / 597,048 backward calls; peak allocated/reserved 2771.765625/5862 MiB. No performance improvement claimed. |
 
-原生一阶反向的列表归约顺序不保证位级确定性。连续训练与续训轨迹的首轮参数比较超过 atol=2e-5/rtol=1e-4，失败记录保留，未放宽该门限；两次完全连续训练的最大参数漂移为 7.626414e-5，连续与续训为 7.621944e-5。检查点恢复起点本身完全相同；不宣称后续训练轨迹位级相同。完整 AP 与最终指标必须以全量结果判断。
+
+Full20 的原始 result.json 明确记录 full_test=true 和 4,952 张图；其中 coco_eval_bbox[0] 为 0.6013724164870897，满足本次完整测试集 0.570 门槛。保留原始 result.json limits 中通用的 subset AP 提示不变；该提示描述子集诊断，full20 记录里的 full_test 标记和图像数说明这次评估覆盖完整测试集。训练循环 steps.jsonl 共 49,754 条记录，逐条 loss 与 grad_norm 均为有限值。
+
+full20 的 startup.json 记录 trainval/test 图像数 5,011/4,952，训练集 JSON、测试集 JSON 和官方预训练权重 SHA-256 分别为 e511d3a0e39f45162887e4d9f0bed63bf8f01e4c421d965445185b72990f1ab5、14edfb83a2525773c9e5b6e6d4bfa57a866de1cb3ca164c46afe0ac97629b561 和 d442fb2365d6e9640347b2b38686089d13cd55a5c3790d63e3602d079791fed1，与上方只读资产表一致。完成记录、原始 result/startup JSON 与 steps.jsonl 的路径和 SHA-256 见 validation.json。
+
+训练使用代码 commit e8d314544ad96a27734172da0dc7382bcb87c6d7；完成时模型分支 HEAD 为 9318608eadc40e5ece26e5ac33a6c26f48b0131e。train_sdaa.py 和 vendor/SOURCE.json 的 SHA-256 与启动记录一致；训练入口、run_scripts 和 vendor 源码在该代码 commit 与分支 HEAD 之间无差异。此次仅更新文档，不改变训练入口或运行时代码。
+原生一阶反向的列表归约顺序不保证位级确定性。连续训练与续训轨迹的首轮参数比较超过 atol=2e-5/rtol=1e-4，失败记录保留，未放宽该门限；两次完全连续训练的最大参数漂移为 7.626414e-5，连续与续训为 7.621944e-5。检查点恢复起点本身完全相同；不宣称后续训练轨迹位级相同。全量 AP 结果见上表；官方 py311 与 maintainer CI 尚未验证，因此不据此宣称最终竞赛适配完成。
 
 CPU-info 架构提示和官方 torchvision/meshgrid/SyntaxWarning 保留在原始 stderr。本入口仅验证单设备 FP32 eager first-order，未验证 AMP、DDP、二阶梯度或 torch.compile。历史 L4 随机权重性能结果不作为本 VOC L1 配置的证据。
 
