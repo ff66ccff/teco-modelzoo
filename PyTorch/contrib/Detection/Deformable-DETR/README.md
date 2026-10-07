@@ -84,6 +84,18 @@ cd ..
 /home/py312/bin/python verify_native_voc.py --output /dev/shm/voc-native-focused.json
 ```
 
+## Producer grad_output 单机制验证，2026-10-07
+
+本轮仅修改原生 List backward 的 producer grad_output 搬运：每 owner 采用64B对齐的 `T go_record[128]` 与精确 `D*sizeof(T)` blocking memcpy，再使用原 `load_scalar`。CAS/node/list ownership、corner value/consumer go DMA、几何、数学顺序、FP16 bit conversion、ABI和分核不变。模型训练入口及初始化绑定方式不变。
+
+对应算子源固定为 [Teco-Ops PR #40](https://github.com/Tecorigin/teco-ops/pull/40) commit `de4b69dfc1b3b984957e26d8aa7033c03fd7db4b`；目标 kernel SHA-256 为 `17e2b03a8e4168861ee0d4bea4b62b9d39f84d38421e158b9152babd7b9ed23e`。独立构建测试的 candidate core SHA-256 为 `618195bf59c3bc5946d7865a4eddd6131eec93b788884b8b5a9d99e7656f9a56`，extension仍为上方 `4c44e07c…`。最终PR源码的18个runtime文件已按canonical Git字节与候选验证源对应；没有声称从该最终PR head重新构建wheel或官方CI结果。
+
+原 backward132、offset216 exact、List48及forward全部通过。首次forward因旧bootstrap优先选installed package报AttributeError；原失败保留，显式startup选择私有api后同测试与原阈值通过。真实VOC L1（N2/S494/H8/D32/P4，encoderQ494/decoderQ300）FP16 micro三次候选均快于三次baseline，encoder/decoder median延迟减少6.09%/2.97%；FP32 micro区间重叠。
+
+实际VOC两图FP32无capture/hooks计时：baseline `0.606179200/0.624600624/0.621106923 s`（median `0.621106923`），candidate `0.610509759/0.611365727/0.621194002 s`（median `0.611365727`）。1.568% median差小于baseline spread2.966%，三区间重叠，因此不声称稳定模型提速。两方peak allocated/reserved均为 `888.853516/958 MiB`。独立baseline/candidate correctness与候选 `380轮/300.711627 s` steady每轮原CPU oracle门限通过，12forward+12backward、286有限参数梯度；无optimizer update或checkpoint写入。上方Full20/AP只属于既有baseline，不作为本候选精度或性能证据。
+
+完整原值/中位数、shape、来源映射、core/kernel/ext/image/checkpoint SHA、原阈值与限制见 [单机制公开证明](validation-producer-go-20261007.json)。本模型独立接入与验证对应 [ModelZoo PR #6](https://github.com/Tecorigin/teco-modelzoo/pull/6)。原始日志与过程任务保留在模型分支 `logs/deformable-detr/producer-go-record-20261007/` 和 `op_learning/attention/deformable-producer-go-record-20261007/`；历史L4 profile及其他模型结果不计入本轮证据。
+
 ## 免责声明
 ModelZoo仅提供公共数据集的下载链接。这些公共数据集不属于ModelZoo, ModelZoo也不对其质量或维护负责。请确保您具有这些数据集的使用许可。基于这些数据集的模型仅可用于非商业研究和教育。
 

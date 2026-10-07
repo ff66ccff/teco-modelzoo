@@ -1,0 +1,185 @@
+{
+  "schema": "deformable-producer-go-bounded-proof/v1",
+  "date": "2026-10-07",
+  "operator": "ms_deform_attn_backward",
+  "candidate_source_sha256": "17e2b03a8e4168861ee0d4bea4b62b9d39f84d38421e158b9152babd7b9ed23e",
+  "baseline_source_sha256": "90ad6a9bb132768e8adb729c45a6e97089ceb930c1fb9533eee75d0431597642",
+  "candidate_core_sha256": "618195bf59c3bc5946d7865a4eddd6131eec93b788884b8b5a9d99e7656f9a56",
+  "baseline_core_sha256": "ef437793422d1c7b89e4f1680b8430f53c5d28b7b21f3bae908911457853217d",
+  "extension_sha256": "4c44e07c3e02f9433416d2afe7c28d55b3b87c6bbac6f40f4b62549af240392a",
+  "focused": {
+    "backward_comparisons": 108,
+    "offset_gradient_comparisons": 216,
+    "list_gradient_comparisons": 48,
+    "forward": "ALL PASSED after explicit owned PYTHONPATH; original installed-shadow AttributeError retained"
+  },
+  "micro": [
+    {
+      "dtype": "torch.float32",
+      "case": "encoder",
+      "shape": {
+        "N": 2,
+        "S": 494,
+        "H": 8,
+        "D": 32,
+        "Q": 494,
+        "L": 1,
+        "P": 4
+      },
+      "baseline": [
+        0.010953172983136028,
+        0.010984883003402501,
+        0.010958273021969944
+      ],
+      "candidate": [
+        0.010979623009916395,
+        0.010992002964485437,
+        0.010938032995909452
+      ],
+      "baseline_median": 0.010958273021969944,
+      "candidate_median": 0.010979623009916395,
+      "latency_reduction_percent": -0.19482985962886445,
+      "all_candidate_faster": false
+    },
+    {
+      "dtype": "torch.float32",
+      "case": "decoder",
+      "shape": {
+        "N": 2,
+        "S": 494,
+        "H": 8,
+        "D": 32,
+        "Q": 300,
+        "L": 1,
+        "P": 4
+      },
+      "baseline": [
+        0.00672049296554178,
+        0.00670204299967736,
+        0.006698533019516617
+      ],
+      "candidate": [
+        0.006664404005277902,
+        0.006704562983941287,
+        0.006696643016766757
+      ],
+      "baseline_median": 0.00670204299967736,
+      "candidate_median": 0.006696643016766757,
+      "latency_reduction_percent": 0.08057219135811922,
+      "all_candidate_faster": false
+    },
+    {
+      "dtype": "torch.float16",
+      "case": "encoder",
+      "shape": {
+        "N": 2,
+        "S": 494,
+        "H": 8,
+        "D": 32,
+        "Q": 494,
+        "L": 1,
+        "P": 4
+      },
+      "baseline": [
+        0.01990975101944059,
+        0.01974565105047077,
+        0.019779980997554958
+      ],
+      "candidate": [
+        0.018773673044051975,
+        0.018396995030343533,
+        0.018574863963294774
+      ],
+      "baseline_median": 0.019779980997554958,
+      "candidate_median": 0.018574863963294774,
+      "latency_reduction_percent": 6.092609666354843,
+      "all_candidate_faster": true
+    },
+    {
+      "dtype": "torch.float16",
+      "case": "decoder",
+      "shape": {
+        "N": 2,
+        "S": 494,
+        "H": 8,
+        "D": 32,
+        "Q": 300,
+        "L": 1,
+        "P": 4
+      },
+      "baseline": [
+        0.01396956603275612,
+        0.013405497011262923,
+        0.013691295986063778
+      ],
+      "candidate": [
+        0.01335148699581623,
+        0.012815219000913203,
+        0.013284646964166313
+      ],
+      "baseline_median": 0.013691295986063778,
+      "candidate_median": 0.013284646964166313,
+      "latency_reduction_percent": 2.9701280456677637,
+      "all_candidate_faster": true
+    }
+  ],
+  "actual_voc_timing": {
+    "baseline": [
+      0.6061791999964043,
+      0.6246006240253337,
+      0.621106923033949
+    ],
+    "candidate": [
+      0.6105097589897923,
+      0.6113657269743271,
+      0.6211940019857138
+    ],
+    "baseline_median": 0.621106923033949,
+    "candidate_median": 0.6113657269743271,
+    "latency_reduction_percent": 1.5683605669759126,
+    "baseline_spread_percent": 2.9659022216247988,
+    "all_candidate_faster": false,
+    "baseline_peak_allocated_mib": 888.853515625,
+    "candidate_peak_allocated_mib": 888.853515625,
+    "baseline_peak_reserved_mib": 958.0,
+    "candidate_peak_reserved_mib": 958.0
+  },
+  "steady": {
+    "seconds": 300.7116269369726,
+    "rounds": 380,
+    "native_forward_calls": 4560,
+    "native_backward_calls": 4560,
+    "optimizer_steps": 0,
+    "finite_parameter_gradients_per_round": 286,
+    "loss_min": 15.6343355178833,
+    "loss_max": 15.6343355178833,
+    "worst": {
+      "encoder": {
+        "forward": 1.9669532775878906e-06,
+        "grad_value": 3.725290298461914e-09,
+        "grad_locations": 1.043081283569336e-07,
+        "grad_weights": 5.960464477539063e-08
+      },
+      "decoder": {
+        "forward": 2.5033950805664062e-06,
+        "grad_value": 1.4901161193847656e-08,
+        "grad_locations": 3.0994415283203125e-06,
+        "grad_weights": 2.5331974029541016e-07
+      }
+    },
+    "peak_allocated_mib": 888.853515625,
+    "peak_reserved_mib": 958.0
+  },
+  "decision": "FP16 primitive isolated positive; FP32 primitive neutral and actual FP32 VOC timing overlap, no stable model speedup; keep production unchanged",
+  "limitations": [
+    "No fresh official current-head wheel claim",
+    "No full20/AP candidate evidence",
+    "No stable FP32 model speedup",
+    "No optimizer updates; unchanged model training adapter/default"
+  ],
+  "upstream_pr": "https://github.com/Tecorigin/teco-ops/pull/40",
+  "upstream_final_commit": "de4b69dfc1b3b984957e26d8aa7033c03fd7db4b",
+  "task": "op_learning/attention/deformable-producer-go-record-20261007",
+  "upstream_source_identity": "Canonical18 runtime files equal independently compiled candidate source; root verified final target17e2b03a8e4168861ee0d4bea4b62b9d39f84d38421e158b9152babd7b9ed23e",
+  "model_pr": "https://github.com/Tecorigin/teco-modelzoo/pull/6"
+}
