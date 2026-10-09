@@ -46,7 +46,7 @@ import torch
 import torch_sdaa  # registers the vendor device, without changing installed packages
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE / "vendor"))
+sys.path.insert(0, str(HERE))
 from main import get_args_parser
 from models import build_model
 from datasets import build_dataset, get_coco_api_from_dataset
@@ -281,7 +281,7 @@ def main(args):
                     if "libteco_ops.so" in line})
     receipt = {"official_commit": OFFICIAL_COMMIT, "assets": assets,
                "entry_sha256": sha256(Path(__file__)),
-               "vendor_manifest_sha256": sha256(HERE / "vendor/SOURCE.json"),
+               "vendor_manifest_sha256": sha256(HERE / "SOURCE.json"),
                "configuration": configuration(args), "load": load_report,
                "native_extension": str(extension), "native_extension_sha256": sha256(extension),
                "mapped_cores": {path: sha256(path) for path in cores},
