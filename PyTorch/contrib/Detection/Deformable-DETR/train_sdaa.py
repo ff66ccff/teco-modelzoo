@@ -41,12 +41,24 @@ import shutil
 import sys
 import time
 
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE / "vendor"))
+
+# Capability contract, evaluated once at import time so every path into native
+# training (train_sdaa.py, run_DeformableDETR.py, verify_native_voc.py) is gated
+# on real capabilities: Python 3.11/3.12, torch/torchvision, a usable SDAA device
+# and the paired tecoops package resolved under TECOOPS_API_ROOT (an older
+# site-packages wheel can no longer be used silently).  It runs before the heavy
+# stack imports so a wrong interpreter fails with an actionable message.
+import runtime_contract
+
+RUNTIME_RECEIPT = runtime_contract.require_capabilities(
+    role="train_sdaa.py", require_tecoops_root=True)
+
 import numpy as np
 import torch
 import torch_sdaa  # registers the vendor device, without changing installed packages
-
-HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
 from main import get_args_parser
 from models import build_model
 from datasets import build_dataset, get_coco_api_from_dataset
@@ -188,8 +200,8 @@ def batch_indices(length, batch_size, seed, epoch, cursor):
 
 
 def main(args):
-    if Path(sys.executable).resolve() != Path("/home/py312/bin/python").resolve():
-        raise RuntimeError("use /home/py312/bin/python")
+    # Interpreter capabilities are enforced by the import-time capability
+    # contract above; the SDAA device itself is re-checked here.
     if int(os.environ.get("WORLD_SIZE", "1")) != 1:
         raise ValueError("this validated entry supports one SDAA process only")
     if not args.device.startswith("sdaa") or not torch.sdaa.is_available():

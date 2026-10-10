@@ -19,6 +19,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.nn.init import xavier_uniform_, constant_
 
+from .._tecoops_binding import BINDING as _TECOOPS_BINDING  # import-time wheel binding
 from ..functions import MSDeformAttnFunction
 
 

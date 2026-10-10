@@ -8,9 +8,18 @@
 
 使用已有厂商环境，固定 `/home/py312/bin/python`，解析路径为 `/usr/local/python/bin/python3.12`。本轮验证为 Python 3.12.13、PyTorch 2.12.0a0+git0d62256、Torch-SDAA 20260623.8.51.dev0+gitd942f23、driver/runtime 3.2.0，单个 15 GiB 逻辑 SDAA 设备。不升级或改动全局 PyTorch、Torch-SDAA、torchvision 等耦合依赖。非耦合依赖列于 [requirements.txt](requirements.txt)；TCAP logger 固定源码在 `tcap_dllogger/`，无需全局安装。
 
+交付入口用**解释器能力契约**取代了历史上的 py312 路径硬断言（见 [runtime_contract.py](runtime_contract.py) 与
+[docs/bootstrap-py311.md](docs/bootstrap-py311.md)）：`PYTHON` 可指向官方 Python 3.11 或厂商 3.12（默认仍是
+`/home/py312/bin/python`），入口再校验真实能力——Python 主次版本、`torch`/`torchvision`、`torch_sdaa` 且
+`torch.sdaa.is_available()`、以及**已安装的 `tecoops` whl**（`import tecoops`；缺包即 fail-closed，不存在 torch 回退）。`TECOOPS_API_ROOT` 不再是必需项，仅作为源码树开发态的可选覆盖保留。
+任一项不满足即 fail-closed 并打印可执行提示；**不允许 CPU fallback**。官方 py3.11 会话先用
+`bash run_scripts/precheck_official_env.sh` 做静态预检（只导入与哈希，不装包、不占卡）。
+
 官方 [ModelZoo 适配指南](https://github.com/Tecorigin/teco-modelzoo/blob/45e6b89185c8e6e081ce58d759cd62b8d15a1f5c/PyTorch/doc/模型适配指南.md)指定 Python 3.11 / PyTorch 2.7.1，与本队 AGENTS.md 的 py312 硬约束不同。本提交只证明上述 py312 栈；官方 py311 栈尚未执行；maintainer CI 也未验证。Full20 结果仅说明本队 py312 环境的全测试门槛通过，不表示官方环境门禁或适配完成。
 
-`TECOOPS_API_ROOT` 指向项目独立构建/解包的 `tecoops` 包的父目录，须提供 `ms_deform_attn` 前向及一阶反向。运行时记录实际 extension/core 映射与 SHA-256；本轮验证的 extension 为 `4c44e07c3e02f9433416d2afe7c28d55b3b87c6bbac6f40f4b62549af240392a`，core 为 `ef437793422d1c7b89e4f1680b8430f53c5d28b7b21f3bae908911457853217d`。该构建的 18 个运行源码文件与 PR #40 head `b565d40242473c5a002886ae372944ba2d9070f3` 等价；本轮没有重新构建该 head。
+原生 MSDA 通过**已安装的 `tecoops` whl** 绑定：`pip install tecoops-<version>-cp3xx-cp3xx-linux_loongarch64.whl` 后 `import tecoops`，模型调用 `tecoops.ms_deform_attn`（前向）与配对的一阶反向；绑定点是 `models/ops/_tecoops_binding.py`，在**导入期一次绑定**（热路径零分支、零 `getenv`），缺包 / 缺原生对象 / 缺入口一律 fail-closed，**不依赖源码树路径**，也不要求 `TECOOPS_API_ROOT`（该变量仅作为源码树开发态的可选覆盖：设置时 `tecoops` 必须解析在其之下）。
+
+本轮实测 whl 由 PR #40 head `ff17c0ed940d810ccda0cdff965a7b54d0b06877` 的源码在隔离副本构建（`WITH_TORCH=ON WITH_INFERENCE_PLUGIN=OFF /home/py312/bin/python setup.py bdist_wheel`，cp312 / linux_loongarch64）：文件名 `tecoops-0.0.0-cp312-cp312-linux_loongarch64.whl`，**SHA-256 `e16d2f4b8555c640b9fcae09f7c4c5050648a1aeaf72f541edf29f049194f068`**（3,276,490 字节）；包内 `tecoops/_torch_ext.cpython-312-loongarch64-linux-gnu.so` = `e0424d1e…`、`tecoops/libteco_ops.so` = `6bd4ed1a…`。这四个算子源码（`.scpp`/`.h`/`find_*.cpp`/`.hpp`）与本交付树 api 构建的源码 SHA-256 **4/4 相同**；whl 内的 `.so` 与交付树 api 构建（`5e244917…`/`d3ae7b74…`）**字节不同**——同源码在不同 build root 下会差字节，本仓库对此的口径是**只做同 build 比较**。whl **不随 git 提交**；构建命令、源码 SHA 与获取方式见 [docs/bootstrap-py311.md](docs/bootstrap-py311.md)。
 
 ## Read-only assets
 
@@ -30,7 +39,8 @@
 
 ```bash
 export MODEL_ROOT=/path/to/provisioned/data_ckpt
-export TECOOPS_API_ROOT=/path/to/project-local/native/api
+# paired native MSDA: install the wheel for the running interpreter (required)
+pip install /path/to/tecoops-<version>-cp3xx-cp3xx-linux_loongarch64.whl
 export SDAA_VISIBLE_DEVICES=0
 cd run_scripts
 bash test.sh --output-dir /dev/shm/voc20-run --epoch 20 --batchsize 2 --seed 42
@@ -72,17 +82,22 @@ Full20 的原始 result.json 明确记录 full_test=true 和 4,952 张图；其�
 
 full20 的 startup.json 记录 trainval/test 图像数 5,011/4,952，训练集 JSON、测试集 JSON 和官方预训练权重 SHA-256 分别为 e511d3a0e39f45162887e4d9f0bed63bf8f01e4c421d965445185b72990f1ab5、14edfb83a2525773c9e5b6e6d4bfa57a866de1cb3ca164c46afe0ac97629b561 和 d442fb2365d6e9640347b2b38686089d13cd55a5c3790d63e3602d079791fed1，与上方只读资产表一致。完成记录、原始 result/startup JSON 与 steps.jsonl 的路径和 SHA-256 见 validation.json。
 
-训练使用代码 commit e8d314544ad96a27734172da0dc7382bcb87c6d7；完成时模型分支 HEAD 为 9318608eadc40e5ece26e5ac33a6c26f48b0131e。该次训练的 train_sdaa.py 和 SOURCE.json 的 SHA-256 与启动记录一致；训练入口、run_scripts 和本地源码在该代码 commit 与分支 HEAD 之间无差异。此次文档更新本身不改变运行时代码；其后为适配本目录的扁平化布局，对 train_sdaa.py 中两处路径表达式做了等价修正，train_sdaa.py 的 SHA-256 因此不同于该启动记录，见 [RELOCATION-NOTE.md](RELOCATION-NOTE.md)。
+训练使用代码 commit e8d314544ad96a27734172da0dc7382bcb87c6d7；完成时模型分支 HEAD 为 9318608eadc40e5ece26e5ac33a6c26f48b0131e。train_sdaa.py 和 SOURCE.json 的 SHA-256 与启动记录一致；训练入口、run_scripts 和 vendor 源码在该代码 commit 与分支 HEAD 之间无差异。此次仅更新文档，不改变训练入口或运行时代码。
 原生一阶反向的列表归约顺序不保证位级确定性。连续训练与续训轨迹的首轮参数比较超过 atol=2e-5/rtol=1e-4，失败记录保留，未放宽该门限；两次完全连续训练的最大参数漂移为 7.626414e-5，连续与续训为 7.621944e-5。检查点恢复起点本身完全相同；不宣称后续训练轨迹位级相同。全量 AP 结果见上表；官方 py311 与 maintainer CI 尚未验证，因此不据此宣称最终竞赛适配完成。
 
 CPU-info 架构提示和官方 torchvision/meshgrid/SyntaxWarning 保留在原始 stderr。本入口仅验证单设备 FP32 eager first-order，未验证 AMP、DDP、二阶梯度或 torch.compile。历史 L4 随机权重性能结果不作为本 VOC L1 配置的证据。
 
-参考正确性入口（由正确厂商环境调用，SDAA_VISIBLE_DEVICES 固定单设备）：
+参考正确性入口（与交付入口同一解释器、SDAA 运行库与**同一份已安装 whl**；`SDAA_VISIBLE_DEVICES` 固定单设备）：
 
 ```bash
-cd ..
-/home/py312/bin/python verify_native_voc.py --output /dev/shm/voc-native-focused.json
+bash run_scripts/verify_native_voc.sh --output /dev/shm/voc-native-focused.json
 ```
+
+该包装脚本与 `run_scripts/test.sh` 共用 `run_scripts/_entry_env.sh`：`PYTHON` 默认厂商路径、`MODEL_ROOT` fail-closed、
+在运行前跑同一能力契约；`TECOOPS_API_ROOT` **不再必需**（仅源码树开发态可选覆盖，设置时校验 `tecoops` 解析在其之下）。
+`verify_native_voc.py` 会打印实际加载的 `tecoops.__file__` 与其原生对象 SHA-256 自证，避免审计发现的「文档入口静默验证到无关旧 wheel」。
+
+交付训练入口是 `run_scripts/test.sh`（内部 `run_DeformableDETR.py` → `train_sdaa.py`）。同目录的 `run_deformable_detr.py` 是上游遗留脚本（调用原始 `main.py`），**不是**本交付的 SDAA 入口，保留仅为来源完整性。
 
 ## Producer grad_output 单机制验证，2026-10-07
 

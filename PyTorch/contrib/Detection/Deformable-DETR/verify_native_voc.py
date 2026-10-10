@@ -31,16 +31,26 @@ import json
 from pathlib import Path
 import random
 import sys
-import numpy as np
-import torch
-import torch_sdaa
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+
+# Same capability contract as the delivery entry, evaluated before the heavy
+# stack imports so a wrong interpreter fails with an actionable message.
+import runtime_contract
+
+RUNTIME_RECEIPT = runtime_contract.require_capabilities(
+    role='verify_native_voc.py', require_tecoops_root=True)
+
+import numpy as np
+import torch
+import torch_sdaa
 import train_sdaa as training
 from models.ops.modules.ms_deform_attn import MSDeformAttnFunction
 from models.ops.functions.ms_deform_attn_func import ms_deform_attn_core_pytorch
 import tecoops
+
+print(f'[verify_native_voc] tecoops.__file__={tecoops.__file__}')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--output', type=Path, required=True)

@@ -10,7 +10,10 @@
 
 import torch
 import torch.nn.functional as F
-from tecoops import ms_deform_attn
+
+# The paired native entry comes from the installed tecoops wheel; the binding
+# module fails closed when the wheel is missing and binds exactly once.
+from .._tecoops_binding import BINDING, ms_deform_attn  # noqa: F401
 
 
 class MSDeformAttnFunction:

@@ -1,8 +1,33 @@
-# Vendor PyTorch / Torch-SDAA / torchvision are provided by the existing TECO environment.
-# Never upgrade them with this file. Native tecoops is built separately from PR #40.
-numpy
-Pillow
-scipy
-pycocotools
-# This exact TCAP source is also vendored locally; no global installation is needed.
-git+https://github.com/Tecorigin/tcap_dllogger.git@6997d7d15b1b23e9000f9e5c5cd7536b6e1b299e
+# Deformable-DETR delivery - non-coupled Python dependencies.
+#
+# Target environment: the official ModelZoo training image (Python 3.11 /
+# PyTorch 2.7.1).  The vendor py3.12 stack used for the local evidence installs
+# the same packages.
+#
+# DO NOT add torch / torchvision / torch_sdaa here: they are provided by the
+# official or vendor image and must never be installed, upgraded or removed by
+# this file.
+#
+# Native tecoops is NOT a PyPI dependency: install the paired wheel built from
+# Teco-Ops PR #40 (branch op/deformable-msda-forward) for the running
+# interpreter, e.g.
+#     pip install tecoops-<version>-cp3xx-cp3xx-linux_loongarch64.whl
+# The model imports it directly (models/ops/_tecoops_binding.py) and fails
+# closed when it is missing.  TECOOPS_API_ROOT is only an optional source-tree
+# development override (see docs/bootstrap-py311.md).
+#
+# tcap_dllogger is NOT listed here either.  The exact pinned source already
+# ships in this tree at tcap_dllogger/ (provenance in its SOURCE.json) and
+# train_sdaa.py puts the tree root on sys.path, so the former network requirement
+#     git+https://github.com/Tecorigin/tcap_dllogger.git@6997d7d15b1b23e9000f9e5c5cd7536b6e1b299e
+# is replaced by the vendored copy.  Use it offline; never fetch it at install time.
+#
+# Pins below are the verified Python 3.11 compatible releases.  Install them from
+# a local wheel cache when the official network is unavailable:
+#   "$PYTHON" -m pip install --no-index --find-links /path/to/wheels -r requirements.txt
+# If the official image already provides a newer compatible release, keep the
+# image version rather than downgrading the stack.
+numpy==1.26.4
+Pillow==10.4.0
+scipy==1.11.4
+pycocotools==2.0.8

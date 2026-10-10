@@ -31,11 +31,16 @@ import subprocess
 import sys
 from argument import parse_args
 
-args = parse_args()
 root = Path(__file__).resolve().parents[1]
-python = Path('/home/py312/bin/python')
-if Path(sys.executable).resolve() != python.resolve():
-    raise RuntimeError('use /home/py312/bin/python')
+sys.path.insert(0, str(root))
+import runtime_contract
+
+# Capability contract: validates the interpreter that is actually running
+# (selected by PYTHON in run_scripts/test.sh) instead of a hard-coded path.
+receipt = runtime_contract.require_capabilities(
+    role='run_DeformableDETR.py', require_tecoops_root=True)
+args = parse_args()
+python = Path(receipt['executable'])
 command = [str(python), '-u', str(root / 'train_sdaa.py'), '--device', 'sdaa:0',
            '--batch_size', str(args.batchsize), '--epochs', str(args.epoch), '--seed', str(args.seed),
            '--output_dir', args.output_dir, '--max-train-steps', str(args.max_train_steps),
