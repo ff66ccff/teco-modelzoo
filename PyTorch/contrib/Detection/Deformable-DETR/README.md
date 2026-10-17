@@ -8,7 +8,7 @@
 - **模型来源**：`Tecorigin/Deformable-DETR @ 1bda1f956a326d2601302413e4618c0fd109e799`（Apache-2.0），
   保留原网络、损失、数据增强与版权声明；来源与文件哈希见 [SOURCE.json](SOURCE.json)。
 - **算子**：`MSDeformAttn` 的多尺度可变形注意力由**本队开发的 C++ 算子**提供
-  （`tecoops.ms_deform_attn` 前向 + 配对的一阶反向，见 Teco-Ops 提交仓 main `12271c185e3042392d8c9206ceb7535b20a53f50`），
+  （`tecoops.ms_deform_attn` 前向 + 配对的一阶反向，见 Teco-Ops 提交仓 main `11cb85cbdc02470dde0a50d9777bb1e386501b9c`），
   通过 `models/ops/_tecoops_binding.py` 在**导入期一次绑定**（热路径零分支、零 `getenv`）。
   缺包 / 缺原生对象 / 缺入口一律 **fail-closed**，**不回退**到 CPU 或 torch 实现。
 - **单卡形态**：本入口为**单进程单卡**（`--gpu 0` 语义由运行环境决定）；太初卡为**单卡四核组**结构，
@@ -71,7 +71,7 @@ export MODEL_ROOT=/root/competition-assets/deformable-detr-voc2007-20260717/payl
 "$PYTHON" -m pip install tecoops-0.0.0-cp3xx-cp3xx-linux_loongarch64.whl
 ```
 
-`tecoops` whl 由**提交的算子仓 main `12271c185e3042392d8c9206ceb7535b20a53f50`**（= 上一版 pin
+`tecoops` whl 由**提交的算子仓 main `11cb85cbdc02470dde0a50d9777bb1e386501b9c`**（= 上一版 pin
 `79941c5`（= `4adfd05e`（含 `459992a2` + Deformable value-leaf stage-1 `2f3a7735` + 团队融合 NeoX RoPE
 `9fba48c` 的 merge 与 Hy 真实 shape 用例）+ 7 个纯增量 CI 测试件 `dda33c5b` +
 `ms_deform_attn_forward` per-value-plane 整块搬运 `79941c5`）
@@ -245,3 +245,4 @@ ModelZoo 仅提供公共数据集的下载链接。这些公共数据集不属�
 **cycle-38 round-2 pin 说明（2026-10-18）**：本交付的 ops pin 由 `f748d0abc93ab813f6e35feed261795ba850bd3b` 前移至 **`9fda597f7d8bc5f98893081372a552f411f26e42`**（`9fda597`：flash_attention D256/ALGO1 调度单元 `UQ = BM/2 = 32` 的切分修正；官方固定形态同窗同 build root 只换 `.so`：**`case_6` 0.183760 → 0.116800 ms（−36.44%）**、`case_7` 0.151690 → 0.149830（−1.23%），其余 9 例 −0.1~−0.3% 无回退；`max_error` 逐位不变，**11/11 PASSED、39/39 PASSED**）。
 **cycle-38 round-10 pin 说明（2026-10-18）**：本交付的 ops pin 由 `9fda597f7d8bc5f98893081372a552f411f26e42` 前移至 **`20c245a39bbf35fa4dee0c0dbcd3313248490bbf`**（`20c245a` `perf(build): pin the hot device sections into their measured fast addresses`：在 TAX-1 基础上用 5 步纯 list 重排把三个热算子的 `.aitext` 精确钉进实测快类——`weight_stream_gemv` **0x25a08**、`rotary_embedding` **0x28858**、`zzz_flash_attention_d128` **0x2a878**；官方固定形态**同窗同 root 从源码构建**的双臂 A/B、3 次中位数：rotary `case_0/1/2` **0.003998→0.001686 / 0.006323→0.003904 / 0.003994→0.001729（−57.8% / −38.3% / −56.7%）**、wsg `case_0/1` **0.005722→0.003977 / 0.007753→0.007686（−30.5% / −0.9%）**、flash D128 `case_0` **0.828940→0.809140（−2.39%）**、rms_norm `case_6` −0.54%；8 例 SUM `0.87075→0.841684（−3.34%）`；**39/39 PASSED**、`max_error` 不变。原始件 `/root/tmpwork/c38/ops/out-r10/`、`RESULT-R10.md`）。
 **cycle-39 pin 说明（2026-10-18）**：本交付的 ops pin 由 `20c245a39bbf35fa4dee0c0dbcd3313248490bbf` 前移至 **`12271c185e3042392d8c9206ceb7535b20a53f50`**（`79470cb` flash D256/D512 的 NT PV 面板异步双 pane：`case_6` **−4.13%/−4.19%**、`case_7` **−4.31%/−4.01%**、`case_5` −5.01%/−4.99%，其余 8 例 −0.2~−0.4% 无回退；`12271c1` weight_stream_gemv 驻留 slab 分裂：`case_0` −1.14%/−2.40%、`case_1` **−11.54%/−12.22%**；两提交均 39/39 PASSED）。已知代价：两内核体积变化使其后锚点平移，wsg `case_0` 从 pin 峰值 0.00396 退到 0.00570（仍比 cycle-37 起点快 17%）；round-12 重推臂因拉回 pre-wsg 微秒算子的旧慢地址而 SUM +0.174%，已 REJECT。
+**cycle-39 round-13 pin 说明（2026-10-18）**：本交付的 ops pin 由 `12271c185e3042392d8c9206ceb7535b20a53f50` 前移至 **`11cb85cbdc02470dde0a50d9777bb1e386501b9c`**（两个原子提交：`fab1fa2` flash_attention 的**首 tile rescale 跳过**（每个 Q block 第一个 KV tile 上 `scale = exp(-inf) = 0`，把 0 写成 0 ⇒ 逐位不变；同窗两窗：`case_0/8/9/10` **−1.60%/−1.61%**、`case_2/3` **−1.18%/−1.17%**、`case_5` **−2.31%/−2.28%**、`case_4` −0.89%、`case_1` −0.90%；flash 集合 **−1.20%**；`max_error` 11 例逐位不变、39/39 PASSED）；`11cb85c` D512 **tail** PV 循环的异步双 pane（`79470cb` 只覆盖主循环，tail 占每头 48 个面板中的 32 个；同窗两窗：`case_7` **−3.99%/−3.91%**，`case_6` 无 tail ⇒ +0.12%；`max_error` 逐位不变、39/39 PASSED））。原始件 `/root/tmpwork/c39/`、台账 `docs/competition/c37-lead-ledger-20261018.md`。
