@@ -1,1 +1,5 @@
 * text eol=lf
+# Keep binary assets byte-exact: without this, the rule above rewrites CRLF
+# byte pairs inside PNGs on `git add` and corrupts the PNG signature (observed
+# on the mirrored delivery tree: figs/*.png lost 1-5 bytes).
+*.png binary
