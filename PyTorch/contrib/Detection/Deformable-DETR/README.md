@@ -129,22 +129,50 @@ export MODEL_ROOT=/root/competition-assets/deformable-detr-voc2007-20260717/payl
 
 ### 2.4 启动训练
 
-```bash
-export MODEL_ROOT=/root/competition-assets/deformable-detr-voc2007-20260717/payload/data_ckpt
-export PYTHON=/home/py312/bin/python
+`run_scripts/test.sh` 是参数化入口：`--help` 在**任何环境**都可用（不需要先设置
+`MODEL_ROOT`/`PYTHON`），全部参数带 ModelZoo 风格别名，未给出的选项使用下表默认。
 
-# 最小集成检查（1 个训练步 + 2 张评估图；输出目录必须为空且是新的）
-bash run_scripts/test.sh --max-train-steps 1 --eval-images 2 --output-dir /tmp/detr-smoke
+```bash
+cd run_scripts && bash test.sh        # 参数化入口（--help 查看全部参数与默认值）
+cd run_scripts && bash test.sh --help # 用法 + 默认值 + 示例；无需任何环境
+
+# 最小集成检查（1 个训练步 + 2 张评估图；--output-dir 缺省时自动生成新的空目录）
+bash run_scripts/test.sh --max-train-steps 1 --eval-images 2
 
 # 有界训练（示例：续跑到某个步数上限）
-bash run_scripts/test.sh --max-train-steps 100 --output-dir /tmp/detr-run
+bash run_scripts/test.sh --max-train-steps 100
 
-# 完整测试集评估（需要已训练的 checkpoint）
-bash run_scripts/test.sh --eval --output-dir /tmp/detr-eval
+# 完整测试集评估（需要 --resume 指向 entry 的 checkpoint）
+bash run_scripts/test.sh --eval --resume <上一轮 output-dir>/checkpoint.pth
+
+# 官方风格带参启动（--bs/--device 为受支持的别名；轮数被官方配方固定为 20，
+# 有界冒烟请用 --max-train-steps，见 §2.4 参数表）
+bash run_scripts/test.sh --bs 2 --device sdaa --max-train-steps 1 --eval-images 2
 ```
 
-常用参数：`--output-dir`（**必填**）、`--max-train-steps`、`--eval-images`、`--max-seconds`、
-`--resume`、`--checkpoint-every`、`--eval`。
+常用参数（无 `--output-dir` 必须，缺省为 `<project>/outputs/run-<UTC 时间戳>` 新空目录）：
+
+| 参数 | 别名 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `--output-dir DIR` | `--output_dir` | `<project>/outputs/run-<UTC 时间戳>` | 输出目录，**必须为新的空目录** |
+| `--batchsize N` | `--bs`、`--batch_size` | 2 | 聚合卡口径 minibatch |
+| `--epoch N` | `--epochs` | 20 | 训练轮数；**官方 R50 single-scale 配方固定 20**，给其它值会 fail-closed（有界冒烟请用 `--max-train-steps`） |
+| `--seed N` | — | 42 | 训练种子 |
+| `--device D` | — | `sdaa:0` | 仅接受 `sdaa`/`sdaa:0`（单卡，无 CPU 回退） |
+| `--model_name NAME` | — | `DeformableDETR` | 仅接受 `DeformableDETR` |
+| `--nproc_per_node N` | — | 1 | 仅接受 1（单进程单卡入口） |
+| `--dataset_path DIR` | `--model_root` | `MODEL_ROOT`（缺省 `…/payload/data_ckpt`） | 只读资产根，接受 data_ckpt 或其父目录，缺 `voc_coco/` 或 `.pth` 即 fail-closed |
+| `--resume PATH` | — | 空 | 续训（配合 `--eval`） |
+| `--max-train-steps N` | — | 0（不设上限） | 有界训练步数 |
+| `--max-seconds S` | — | 0（不设上限） | 有界训练时长 |
+| `--eval-images N` | — | 0（全部 4952 张） | 评估图数 |
+| `--checkpoint-every N` | — | 1000 | checkpoint 保存间隔 |
+| `--eval` | — | 关 | 仅评估 |
+| `--no-audit-msda` | `--audit-msda`（显式开） | 默认开 | 原生 MSDA 前向/反向调用计数 |
+| `--lr` / `--lr_backbone` / `--weight_decay` / `--clip_max_norm` / `--coco_path` | — | 不转发 | 官方配方覆盖项，**仅在用户显式给出时**透传给 `train_sdaa.py`，缺省不覆盖 `lr=2e-5 / lr_backbone=2e-6` |
+
+`MODEL_ROOT`/`PYTHON` 仍可用环境变量提供（见 §2.1/§2.2）；不设时使用上表缺省值，若缺省
+`data_ckpt` 不存在，入口会在加载 SDAA 运行时之前 fail-closed 并给出清晰报错。
 
 **期望的 TCAP 前端日志**（每次迭代一行；`StdOutBackend` 输出到 stdout）：
 

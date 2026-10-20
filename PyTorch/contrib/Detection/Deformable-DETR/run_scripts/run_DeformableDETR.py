@@ -45,9 +45,23 @@ command = [str(python), '-u', str(root / 'train_sdaa.py'), '--device', 'sdaa:0',
            '--batch_size', str(args.batchsize), '--epochs', str(args.epoch), '--seed', str(args.seed),
            '--output_dir', args.output_dir, '--max-train-steps', str(args.max_train_steps),
            '--max-seconds', str(args.max_seconds), '--eval-images', str(args.eval_images),
-           '--checkpoint-every', str(args.checkpoint_every), '--audit-msda']
+           '--checkpoint-every', str(args.checkpoint_every)]
+# Optimizer / dataset passthrough supported by train_sdaa.py (via
+# main.get_args_parser).  Forward ONLY the options the user passed
+# (argument.py defaults them to None), so the validated official recipe
+# (lr=2e-5, lr_backbone=2e-6) is never re-defaulted by this entry.
+for flag, value in (('--lr', args.lr), ('--lr_backbone', args.lr_backbone),
+                    ('--weight_decay', args.weight_decay),
+                    ('--clip_max_norm', args.clip_max_norm),
+                    ('--coco_path', args.coco_path)):
+    if value is not None:
+        command.extend([flag, str(value)])
 if args.resume:
     command.extend(['--resume', args.resume])
 if args.eval:
     command.append('--eval')
+if args.audit_msda is None or args.audit_msda:
+    command.append('--audit-msda')
+else:
+    command.append('--no-audit-msda')
 raise SystemExit(subprocess.run(command, cwd=root, check=False).returncode)

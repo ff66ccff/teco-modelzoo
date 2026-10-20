@@ -500,4 +500,7 @@ if __name__ == "__main__":
                         help="diagnostic prefix; zero evaluates all 4952 test images")
     parser.add_argument("--checkpoint-every", type=int, default=0)
     parser.add_argument("--audit-msda", action="store_true")
+    parser.add_argument("--no-audit-msda", dest="audit_msda", action="store_false",
+                        help="disable the native MSDA fwd/bwd call counter "
+                             "(--audit-msda sets it back on; the entry defaults it on)")
     main(parser.parse_args())
