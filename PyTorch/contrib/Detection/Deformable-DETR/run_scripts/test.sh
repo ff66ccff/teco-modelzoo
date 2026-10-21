@@ -36,15 +36,21 @@ Options:
   --output_dir DIR        alias of --output-dir
   --bs N                  alias of --batchsize N                     [default: 2]
   --batch_size N          alias of --batchsize N
-  --batchsize N           minibatch size (aggregate card view)       [default: 2]
+  --batchsize N           minibatch size PER PROCESS = per core group
+                          (aggregate global batch = N x --nproc_per_node)
+                                                                     [default: 2]
   --epochs N              alias of --epoch N; the validated official R50
   --epoch N               single-scale recipe is FIXED at 20 epochs, so any
                           other value is rejected up front -- use
                           --max-train-steps/--max-seconds for bounded runs
                                                                      [default: 20]
-  --device D              'sdaa' or 'sdaa:0' (single card; no CPU fallback)
-                                                                     [default: sdaa:0]
-  --nproc_per_node N      must be 1 (single-process single-card entry)
+  --device D              'sdaa' or 'sdaa:0' -- this CARD; under DDP each
+                          process binds its own core group (rank 0..3)
+                          (no CPU fallback)                          [default: sdaa:0]
+  --nproc_per_node N      1 = one core group (single process, legacy form)
+                          4 = the card's FOUR core groups, real DDP over
+                          TCCL; this is the default and the form used
+                          for the official throughput numbers   [default: 4]
   --model_name NAME       must be DeformableDETR
   --dataset_path DIR      read-only asset root; a data_ckpt directory or its
   --model_root DIR        parent is accepted and must contain voc_coco/ and
@@ -208,9 +214,11 @@ test -z "$MODEL_NAME" || test "$MODEL_NAME" = DeformableDETR ||
     entry_fail "--model_name '$MODEL_NAME' is unsupported: this entry delivers DeformableDETR only"
 case $NPROC in
     '') ;;
-    1) ;;
-    *) entry_fail "--nproc_per_node must be 1 (validated single-process single-card entry); got '$NPROC'" ;;
+    1|4) ;;
+    *) entry_fail "--nproc_per_node must be 1 (one core group) or 4 (the card's four core groups); got '$NPROC'" ;;
 esac
+NPROC=${NPROC:-4}
+export DETR_NPROC=$NPROC
 case $DEVICE in
     ''|sdaa|sdaa:0) ;;
     *) entry_fail "--device must be 'sdaa' or 'sdaa:0' (single SDAA card; no CPU fallback); got '$DEVICE'" ;;
@@ -263,14 +271,25 @@ test -d "$MODEL_ROOT/voc_coco" ||
 export MODEL_ROOT
 export PYTHON="${PYTHON:-$DEFAULT_PYTHON}"
 
+# Real DDP over the card's four core groups is the default form: export the
+# world size BEFORE _entry_env.sh so it can expose all four core groups to the
+# runtime (SDAA_VISIBLE_DEVICES).  --nproc_per_node 1 keeps the legacy
+# single-core-group form (and is what the A/B comparison runs).
+NPROC=${NPROC:-4}
+export DETR_NPROC=$NPROC
+
 # shellcheck source=_entry_env.sh
 . "$SCRIPT_DIR/_entry_env.sh"
 detr_setup_env "$PROJECT_DIR" "run_scripts/test.sh"
 detr_stage_assets "$PROJECT_DIR"
 
 cd "$SCRIPT_DIR"
-PASS_ARGS=()
-if test -n "$OUTPUT_DIR"; then      PASS_ARGS+=(--output-dir "$OUTPUT_DIR"); fi
+# DDP 下 4 个进程必须共享**同一个**输出目录，否则 rank0 只会在自己的目录里等其它
+# rank 的 gather 文件而超时。因此缺省目录在这里（启动前）算一次并显式传给入口。
+if test -z "$OUTPUT_DIR"; then
+    OUTPUT_DIR="$PROJECT_DIR/outputs/run-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+fi
+PASS_ARGS=(--output-dir "$OUTPUT_DIR")
 if test -n "$BATCHSIZE"; then       PASS_ARGS+=(--batchsize "$BATCHSIZE"); fi
 if test -n "$EPOCHS"; then          PASS_ARGS+=(--epoch "$EPOCHS"); fi
 if test -n "$SEED"; then            PASS_ARGS+=(--seed "$SEED"); fi
@@ -290,4 +309,14 @@ if test -n "$LR_BACKBONE";    then PASS_ARGS+=(--lr_backbone "$LR_BACKBONE"); fi
 if test -n "$WEIGHT_DECAY";   then PASS_ARGS+=(--weight_decay "$WEIGHT_DECAY"); fi
 if test -n "$CLIP_MAX_NORM";  then PASS_ARGS+=(--clip_max_norm "$CLIP_MAX_NORM"); fi
 if test -n "$COCO_PATH";      then PASS_ARGS+=(--coco_path "$COCO_PATH"); fi
-exec "$PYTHON" run_DeformableDETR.py "${PASS_ARGS[@]}"
+PASS_ARGS+=(--nproc-per-node "$NPROC")
+
+# One SDAA process binds one core group.  DDP=4 launches four processes with
+# torchrun (TCCL all-reduce between them), so the card actually runs four-way
+# parallel instead of a single process reporting a hand-divided throughput.
+if test "$NPROC" -eq 1; then
+    exec "$PYTHON" run_DeformableDETR.py "${PASS_ARGS[@]}"
+fi
+exec "$PYTHON" -m torch.distributed.run --standalone --nproc_per_node "$NPROC" \
+    --master_port "$( "$PYTHON" -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()' )" \
+    run_DeformableDETR.py "${PASS_ARGS[@]}"

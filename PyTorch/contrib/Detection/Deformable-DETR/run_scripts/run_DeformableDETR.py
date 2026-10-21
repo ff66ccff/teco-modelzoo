@@ -41,7 +41,8 @@ receipt = runtime_contract.require_capabilities(
     role='run_DeformableDETR.py', require_tecoops_root=True)
 args = parse_args()
 python = Path(receipt['executable'])
-command = [str(python), '-u', str(root / 'train_sdaa.py'), '--device', 'sdaa:0',
+command = [str(python), '-u', str(root / 'train_sdaa.py'), '--device', 'sdaa',
+           '--nproc-per-node', str(args.nproc_per_node),
            '--batch_size', str(args.batchsize), '--epochs', str(args.epoch), '--seed', str(args.seed),
            '--output_dir', args.output_dir, '--max-train-steps', str(args.max_train_steps),
            '--max-seconds', str(args.max_seconds), '--eval-images', str(args.eval_images),

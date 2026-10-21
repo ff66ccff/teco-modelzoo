@@ -80,8 +80,10 @@ def parse_args():
     parser.add_argument('--epochs', dest='epochs_alias', type=int, default=None)
     parser.add_argument('--output_dir', dest='output_dir_alias', default=None)
     parser.add_argument('--device', dest='device_alias', default=None,
-                        help="accepted values 'sdaa' or 'sdaa:0'; the runner is single-device")
-    parser.add_argument('--nproc_per_node', dest='nproc_alias', type=int, default=None)
+                        help="accepted values 'sdaa' or 'sdaa:0' (this card); under DDP each "
+                             "process binds its own core group")
+    parser.add_argument('--nproc_per_node', '--nproc-per-node', dest='nproc_alias',
+                        type=int, default=None)
     parser.add_argument('--dataset_path', '--model_root', dest='dataset_alias', default=None,
                         help='informational here; test.sh resolves it and exports MODEL_ROOT')
 
@@ -98,9 +100,10 @@ def parse_args():
     args = parser.parse_args()
     if args.device_alias is not None and args.device_alias not in ('sdaa', 'sdaa:0'):
         sys.exit("ERROR: --device must be 'sdaa' or 'sdaa:0'; got '%s'" % args.device_alias)
-    if args.nproc_alias is not None and args.nproc_alias != 1:
-        sys.exit('ERROR: --nproc_per_node must be 1 (single-process single-card entry); '
-                 'got %d' % args.nproc_alias)
+    if args.nproc_alias is not None and args.nproc_alias not in (1, 4):
+        sys.exit('ERROR: --nproc_per_node must be 1 (one core group) or 4 (the four core '
+                 'groups of the card); got %d' % args.nproc_alias)
+    args.nproc_per_node = 1 if args.nproc_alias is None else args.nproc_alias
     if args.bs_alias is not None:
         args.batchsize = args.bs_alias
     if args.epochs_alias is not None:
@@ -115,7 +118,11 @@ def parse_args():
         sys.exit('ERROR: --epoch is fixed at 20 by the validated official R50 single-scale '
                  'recipe (got %d); use --max-train-steps/--max-seconds for bounded runs'
                  % args.epoch)
-    _ensure_fresh_output_dir(args)
+    # DDP 下 4 个进程会各自解析一次参数：输出目录的"必须是新空目录"检查由
+    # train_sdaa.py 的 rank0 统一裁决（否则会和 rank0 刚写下的文件竞争误报），
+    # 这里只在单进程形态下提前 fail-closed。
+    if int(os.environ.get("WORLD_SIZE", "1")) == 1:
+        _ensure_fresh_output_dir(args)
     return args
 
 

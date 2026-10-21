@@ -21,7 +21,10 @@ detr_ensure_link() {
         test "$(readlink -f "$link")" = "$(readlink -f "$target")" ||
             detr_fail "existing path $link does not point at $target"
     else
-        ln -s -- "$(readlink -f "$target")" "$link"
+        # DDP 的 4 个进程会并发建立同一组链接：竞争失败等价于"已被其它 rank 建好"
+        ln -s -- "$(readlink -f "$target")" "$link" 2>/dev/null || true
+        test "$(readlink -f "$link")" = "$(readlink -f "$target")" ||
+            detr_fail "cannot link $link -> $target"
     fi
 }
 
@@ -66,7 +69,15 @@ detr_setup_env() {
         printf 'WARN: %s not found; the SDAA runtime must already be present in the environment\n' "$setvars" >&2
     fi
     export SDAA_ENABLE_COREDUMP_ON_EXCEPTION=0
-    export SDAA_VISIBLE_DEVICES="${SDAA_VISIBLE_DEVICES:-0}"
+    # 单卡四核组：DDP=4 必须把 4 个核心组都暴露给运行时（SDAA_VISIBLE_DEVICES），
+    # 否则 torch.sdaa.device_count() == 1，四进程 DDP 起不来。单核组形态仍只暴露 0。
+    if test -z "${SDAA_VISIBLE_DEVICES:-}"; then
+        if test "${DETR_NPROC:-1}" -ge 2; then
+            export SDAA_VISIBLE_DEVICES=0,1,2,3
+        else
+            export SDAA_VISIBLE_DEVICES=0
+        fi
+    fi
     export PYTHONDONTWRITEBYTECODE=1
     if test -n "${TECOOPS_API_ROOT:-}"; then
         export PYTHONPATH="$TECOOPS_API_ROOT${PYTHONPATH:+:$PYTHONPATH}"

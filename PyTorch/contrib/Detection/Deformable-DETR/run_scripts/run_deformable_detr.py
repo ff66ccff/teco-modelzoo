@@ -30,6 +30,10 @@ from argument import parse_args
 
 def main():
     args = parse_args()
+    if getattr(args, 'nproc_per_node', 1) != 1:
+        raise SystemExit('ERROR: run_deformable_detr.py is the upstream single-process entry; '
+                         'use run_scripts/test.sh (--nproc_per_node 4) for real DDP over the '
+                         'four core groups of the card')
     script_dir = os.path.dirname(os.path.abspath(__file__))
     model_dir = os.path.dirname(script_dir)
     main_py = os.path.join(model_dir, "main.py")
