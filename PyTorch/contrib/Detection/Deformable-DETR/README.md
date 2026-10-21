@@ -11,8 +11,13 @@
   （`tecoops.ms_deform_attn` 前向 + 配对的一阶反向，见 Teco-Ops 提交仓 main `75588a996c3c1ac6f5239d5bd328bd8d5ea8c97e`），
   通过 `models/ops/_tecoops_binding.py` 在**导入期一次绑定**（热路径零分支、零 `getenv`）。
   缺包 / 缺原生对象 / 缺入口一律 **fail-closed**，**不回退**到 CPU 或 torch 实现。
-- **单卡形态**：本入口为**单进程单卡**（`--gpu 0` 语义由运行环境决定）；太初卡为**单卡四核组**结构，
-  日志中的 `bs` / `train.ips` 按**单核组**口径给出（公式见 §2.4）。
+- **单卡形态（真实 DDP=4）**：太初卡是**单卡四核组**结构，本入口默认用
+  `torchrun --nproc_per_node 4` 起 **4 个进程**，每个进程绑定一个核心组（`sdaa:<LOCAL_RANK>`），
+  梯度由 **TCCL all-reduce** 同步；全局 batch = 每进程 batch × 4。日志里的 `bs` / `train.ips`
+  的"单核组"行是**该进程实测**吞吐，`scope : aggregate` 行是 4 路合计（机制见 §2.6）。
+  `--nproc_per_node 1` 保留为单核组对照/兼容形态。**旧版"单进程 + 把 bs/train.ips 人工除以 4"
+  的口径已删除**：那在四核组卡上把真实吞吐缩小 4 倍，既不合理也不可比。
+
 - **入口**：`run_scripts/test.sh`（训练/评估/续训统一入口，参数见 §2.4）。
 
 目录结构：
@@ -136,18 +141,24 @@ export MODEL_ROOT=/root/competition-assets/deformable-detr-voc2007-20260717/payl
 cd run_scripts && bash test.sh        # 参数化入口（--help 查看全部参数与默认值）
 cd run_scripts && bash test.sh --help # 用法 + 默认值 + 示例；无需任何环境
 
-# 最小集成检查（1 个训练步 + 2 张评估图；--output-dir 缺省时自动生成新的空目录）
-bash run_scripts/test.sh --max-train-steps 1 --eval-images 2
+# 默认形态 = 真实 DDP=4（四核组并行）：每进程 bs=2，全局 batch=8；
+# 最小集成检查 = 2 个训练步 + 8 张评估图（--output-dir 缺省时自动生成新的空目录）
+# 注意：分布式评估要求 --eval-images 能被 world_size*batchsize = 8 整除（见 §2.6），
+# 因此冒烟用 8 而不是 2；单进程形态（--nproc_per_node 1）没有这个限制。
+bash run_scripts/test.sh --max-train-steps 2 --eval-images 8
+
+# 单核组对照形态（1 进程，与历史单进程行为等价；A/B 用的就是它）
+bash run_scripts/test.sh --nproc_per_node 1 --max-train-steps 30 --eval-images 8
 
 # 有界训练（示例：续跑到某个步数上限）
 bash run_scripts/test.sh --max-train-steps 100
 
-# 完整测试集评估（需要 --resume 指向 entry 的 checkpoint）
-bash run_scripts/test.sh --eval --resume <上一轮 output-dir>/checkpoint.pth
+# 完整测试集评估（需要 --resume 指向 entry 的 checkpoint；可用单进程评估 DDP 训练出的 ckpt）
+bash run_scripts/test.sh --nproc_per_node 1 --eval --resume <上一轮 output-dir>/checkpoint.pth
 
 # 官方风格带参启动（--bs/--device 为受支持的别名；轮数被官方配方固定为 20，
 # 有界冒烟请用 --max-train-steps，见 §2.4 参数表）
-bash run_scripts/test.sh --bs 2 --device sdaa --max-train-steps 1 --eval-images 2
+bash run_scripts/test.sh --bs 2 --device sdaa --max-train-steps 2 --eval-images 8
 ```
 
 常用参数（无 `--output-dir` 必须，缺省为 `<project>/outputs/run-<UTC 时间戳>` 新空目录）：
@@ -155,45 +166,66 @@ bash run_scripts/test.sh --bs 2 --device sdaa --max-train-steps 1 --eval-images 
 | 参数 | 别名 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `--output-dir DIR` | `--output_dir` | `<project>/outputs/run-<UTC 时间戳>` | 输出目录，**必须为新的空目录** |
-| `--batchsize N` | `--bs`、`--batch_size` | 2 | 聚合卡口径 minibatch |
+| `--batchsize N` | `--bs`、`--batch_size` | 2 | **每进程（每核心组）** minibatch；全局 batch = N × nproc（默认 2×4=8） |
 | `--epoch N` | `--epochs` | 20 | 训练轮数；**官方 R50 single-scale 配方固定 20**，给其它值会 fail-closed（有界冒烟请用 `--max-train-steps`） |
 | `--seed N` | — | 42 | 训练种子 |
-| `--device D` | — | `sdaa:0` | 仅接受 `sdaa`/`sdaa:0`（单卡，无 CPU 回退） |
+| `--device D` | — | `sdaa:0` | 仅接受 `sdaa`/`sdaa:0`（指这张卡；DDP 下各进程自行绑定核心组，无 CPU 回退） |
 | `--model_name NAME` | — | `DeformableDETR` | 仅接受 `DeformableDETR` |
-| `--nproc_per_node N` | — | 1 | 仅接受 1（单进程单卡入口） |
+| `--nproc_per_node N` | — | **4** | 1 = 单核组（旧形态，兼容/对照）；4 = 四核组真实 DDP（默认，性能口径用这个） |
 | `--dataset_path DIR` | `--model_root` | `MODEL_ROOT`（缺省 `…/payload/data_ckpt`） | 只读资产根，接受 data_ckpt 或其父目录，缺 `voc_coco/` 或 `.pth` 即 fail-closed |
 | `--resume PATH` | — | 空 | 续训（配合 `--eval`） |
 | `--max-train-steps N` | — | 0（不设上限） | 有界训练步数 |
 | `--max-seconds S` | — | 0（不设上限） | 有界训练时长 |
-| `--eval-images N` | — | 0（全部 4952 张） | 评估图数 |
+| `--eval-images N` | — | 0（全部 4952 张） | 评估图数；DDP 下必须能被 world_size×batchsize 整除（4952 满足） |
 | `--checkpoint-every N` | — | 1000 | checkpoint 保存间隔 |
 | `--eval` | — | 关 | 仅评估 |
 | `--no-audit-msda` | `--audit-msda`（显式开） | 默认开 | 原生 MSDA 前向/反向调用计数 |
-| `--lr` / `--lr_backbone` / `--weight_decay` / `--clip_max_norm` / `--coco_path` | — | 不转发 | 官方配方覆盖项，**仅在用户显式给出时**透传给 `train_sdaa.py`，缺省不覆盖 `lr=2e-5 / lr_backbone=2e-6` |
+| `--lr` / `--lr_backbone` / `--weight_decay` / `--clip_max_norm` / `--coco_path` | — | 不转发 | 官方配方覆盖项，**仅在用户显式给出时**透传。缺省按 linear scaling 随 world 放大：单核组 `2e-5/2e-6`，DDP4 默认 `8e-5/8e-6`（见 §2.6） |
 
 `MODEL_ROOT`/`PYTHON` 仍可用环境变量提供（见 §2.1/§2.2）；不设时使用上表缺省值，若缺省
 `data_ckpt` 不存在，入口会在加载 SDAA 运行时之前 fail-closed 并给出清晰报错。
 
-**期望的 TCAP 前端日志**（每次迭代一行；`StdOutBackend` 输出到 stdout）：
+**期望的 TCAP 前端日志**（DDP=4 默认形态；每次迭代两行，评估两行；`StdOutBackend` 输出到 stdout）：
 
 ```
-TCAPDLL 2026-10-12 14:22:47.916119 - Epoch: 0 Iteration: 1  rank : 0  bs : 0.5  train.loss : 16.848045349121094  train.ips : 0.5378888242411314 imgs/s
-TCAPDLL 2026-10-12 14:22:47.916428 - Epoch: 0 Iteration: 1  rank : 0  scope : aggregate  bs : 2  train.loss : 16.848045349121094  train.ips : 2.1515552969645255 imgs/s
-TCAPDLL 2026-10-12 14:22:49.490222 - evaluation rank : 0  val.loss : 15.379915237426758  val.ips : 2.755475085076346 imgs/s
+TCAPDLL 2026-10-21 03:45:15.433 - Epoch: 0 Iteration: 1  rank : 0  bs : 2  train.loss : 15.458699226379395  train.ips : 1.8969598926739533 imgs/s
+TCAPDLL 2026-10-21 03:45:15.433 - Epoch: 0 Iteration: 1  rank : 0  scope : aggregate  bs : 8  train.loss : 15.458699226379395  train.ips : 7.587839570695813 imgs/s
+TCAPDLL 2026-10-21 03:45:43.390 - evaluation rank : 0  val.loss : 8.151895584538579  val.ips : 2.599272788017114 imgs/s
+TCAPDLL 2026-10-21 03:45:43.390 - evaluation rank : 0  scope : aggregate  val.loss : 8.151895584538579  val.ips : 10.397091152068455 imgs/s
 ```
 
-**单核组换算（太初卡为单卡四核组）**：每条训练日志先给**单核组**口径，随后在**同一步**再给一行聚合口径作对照：
-
-```
-bs_per_core_group  = bs_aggregate  / SDAA_CORE_GROUPS      # SDAA_CORE_GROUPS = 4
-ips_per_core_group = ips_aggregate / SDAA_CORE_GROUPS      # 单位 imgs/s
-train.loss                                 # 逐图均值，两种口径同值
-```
-
-即第一行 `bs : 0.5 = 2/4`、`train.ips : 0.5379… = 2.1516…/4`；第二行 `scope : aggregate` 是整卡聚合值。
+**口径（为什么不再"人工除以 4"）**：单核组行就是**本进程实测**（每进程 bs=2，ips = 2 / 整卡步时间），
+aggregate 行 = 4 个进程合计（= 单核组 × 4，因为四路真的同时在跑）；`train.loss` 是跨 rank
+all-reduce 后的全局逐图均值，两行同值。旧版是"单进程跑 + ips/4"，等于把真实吞吐人为缩小 4 倍，
+已删除。机制、评估整除约束与断点续训见 §2.6；A/B 与全量实测见 §2.7。
 日志由 `tcap_dllogger/`（离线可用）输出；`StdOutBackend` 不在后端列表时入口 **fail-closed** 报错。
 
 ### 2.5 训练结果
+
+#### 2.5.1 DDP=4 有界 smoke（2026-10-21，本轮默认形态）
+
+命令（默认即 DDP=4，四核组并行；新空输出目录由入口自动生成，这里显式给出便于复核）：
+
+```bash
+bash run_scripts/test.sh --max-train-steps 2 --eval-images 8 \
+  --output-dir /root/tmpwork/c49/runs/smoke-ddp4
+```
+
+| 指标 | 实测 |
+| --- | --- |
+| `entry_rc` | **0** |
+| `world_size` / 设备 | 4 / `sdaa:0..3`（每进程一个核心组） |
+| `last_loss`（全局逐图均值） | **16.697153091430664** |
+| `native_calls` | `{"forward": 36, "backward": 24}` = 2 步 ×(12 fwd + 12 bwd) + 评估 4 batch ×12 fwd |
+| 峰值显存（每 rank） | allocated **1674.5 MiB** / reserved **2178.0 MiB** |
+| TCAP 行数 | 6（2 步 × 单核组+aggregate，评估 × 单核组+aggregate） |
+| 分布式评估 | 8 图、4 rank、wall **0.77 s**；AP 0.0（8 图子集是诊断值，不构成精度结论） |
+| CPU/torch 回退 | **0**（`fallback` 提及 0） |
+
+原始件：`/root/tmpwork/c49/runs/smoke-ddp4/{smoke-ddp4.log,result.json,evaluation.json,steps.jsonl}`
+（窗口目录外的临时证据，不随仓库提交）。
+
+#### 2.5.2 历史单进程最小集成检查（旧形态，供对照）
 
 最小集成检查的实测结果（官方计分资产、单卡、`--max-train-steps 1 --eval-images 2`）：
 
@@ -220,6 +252,64 @@ train.loss                                 # 逐图均值，两种口径同值
 > 首步 `train.ips` 由 warm-up 主导（单步 wall ≈3.6 s），不代表稳态吞吐；完整 20 轮的精度/吞吐记录见
 > 模型分支 `experiments/deformable-detr.md` 与 `logs/deformable-detr/`（本目录只保留入口与最小可复现证据）。
 > 历史沿革：早期 PR #40/~cycle-07 的过程台账已归档到模型分支日志，不再在本目录重复。
+
+### 2.6 真实 DDP=4（四核组并行）的机制与边界
+
+**为什么改**：太初卡是"单卡四核组"，只跑 1 个进程等于只用 1/4 张卡。旧版把单进程实测的
+`bs`/`train.ips` 人工除以 4 充作"单核组口径"，既不是真实测量，也让性能口径与官方 r50
+参考（`--nproc_per_node 4`）不可比。现在默认起 4 个进程、每进程占一个核心组，**四路真并行**。
+
+| 项 | 实现 |
+| --- | --- |
+| 启动 | `test.sh` 用 `python -m torch.distributed.run --standalone --nproc_per_node 4`（单进程形态走原来的直连入口） |
+| 设备 | 每 rank `sdaa:<LOCAL_RANK>`；`_entry_env.sh` 在 `DETR_NPROC>=2` 时导出 `SDAA_VISIBLE_DEVICES=0,1,2,3`（否则运行时只看见 1 个核心组） |
+| 通信 | `torch.distributed.init_process_group(backend="tccl", init_method="env://")`；模型用 `DistributedDataParallel`（`broadcast_buffers=False`，参数在构建期同 seed 一致） |
+| 数据 | 每 epoch 用 `seed+epoch` 生成**同一置换**，按"全局 batch = 每进程 batch × 4"切成 4 个等大 shard；每 rank 取自己的 shard，互不重叠、覆盖全集 |
+| 梯度/loss | DDP 梯度 all-reduce；每步再 all-reduce 一次全局 loss（各 rank 局部逐图均值再平均），TCAP 两行同值 |
+| 随机性 | 模型初始权重同 seed；构模后把数据增强/dropout 的 RNG 按 rank 分流（`seed + 1000*(rank+1)`），避免 4 副本同一随机流 |
+| 学习率 | **linear scaling**：单核组 `lr=2e-5 / lr_backbone=2e-6`；DDP4 默认 `8e-5 / 8e-6`（全局 batch 4 倍）。显式 `--lr` 时不缩放 |
+| checkpoint | 只 rank0 落盘；模型 `state_dict` 取 DDP 内层 module（键与单进程一致）；`configuration` 记录 `world_size`/`global_batch_size`，因此**训练续训必须同并行形态**；每个 rank 的 RNG 状态随 checkpoint 保存 |
+| 评估 | 每 rank 一个 shard，预测落盘（tmp+rename）→ rank0 读回合并做**一次** COCOeval；`--eval` 允许用单进程评估 DDP 训练出的 checkpoint（并行形态/优化器超参不参与配置比较） |
+
+**评估整除约束**：`SetCriterion.forward` 内部对 `num_boxes` 做 `all_reduce`
+（`models/deformable_detr.py`），所以每个 rank 必须跑**同样多**的 criterion 调用。空 shard 或
+长度不一的 shard 会让其它 rank 永久阻塞。因此 DDP 评估要求
+`--eval-images % (world_size × batchsize) == 0`（全量 4952 满足；冒烟用 8）。单进程形态无此限制。
+
+**已实测的平台限制（如实披露）**：
+
+1. 本机 TCCL 的 `dist.barrier()` **不是可靠的全局屏障**：空 shard 的 rank 会在其它 rank 尚未
+   到达时就"完成"（实测 rank2/3 先过、rank0/1 永久挂住）；因此跨 rank 的文件交换（预测、
+   每 rank RNG）改成"原子落盘 + rank0 轮询全部文件出现"，不依赖 barrier。
+2. `torch.distributed.all_gather_object` 在本机 SDAA 后端上会按错误长度分配（实测
+   `resize_` 请求 3.7e12 GiB 后 OOM），同一条交换路径改为文件落盘。
+3. 分布式评估的 `val.loss` 用的是 criterion 的**按 rank** `num_boxes` 归一化，数值**不可**
+   与单进程 `val.loss` 直接比较；**AP 才是判据**，且两臂逐位相同（见 §2.7）。
+4. 轨迹级可复现性：原生 MSDA 反向是原子累加、TCCL 归约序也非确定，**两次相同命令的 loss 轨迹
+   不会逐位相同**；能保证的是"续训起始状态逐 tensor 精确恢复"（`assert_restored` 断言
+   model/optimizer/scheduler/RNG 全部相等）。
+
+### 2.7 A/B 与全量训练实测（2026-10-21）
+
+固定形态：官方计分资产 + 队内 ops pin（`tecoops` wheel 的 `_torch_ext`/`libteco_ops`
+SHA-256 = `5c267322…`/`e7722cbc…`，见 §2.3 表）；A/B 两臂同一窗口、同一 build、只改
+`--nproc_per_node`。吞吐取 30 步里**跳过前 5 步**的每步 `train.ips` 中位数，重复 3 次取中位。
+
+| 项目 | 单核组（`--nproc_per_node 1`） | 四核组（默认 DDP=4） | 比值 |
+| --- | --- | --- | --- |
+| 训练吞吐（每核组） | **2.5056 imgs/s**（3 rep 中位 2.5056/2.6082/2.3549 的中位） | **2.0051 imgs/s** | — |
+| 训练吞吐（整卡 aggregate） | 2.5056 imgs/s | **8.0203 imgs/s** | **3.20×** |
+| 评估 200 图 wall | 42.74 s | 12.95 s | **3.30×** |
+| 评估 AP（同一 checkpoint、200 图） | 0.0547584324 | 0.0547584324 | **逐位相同** |
+| 20 epoch 全量训练 wall | 19.70 h（历史单进程，2026-10-07 完成） | 本轮 DDP4 全量 run 进行中（2026-10-21 起跑；完成后补记 wall/AP） | 待补 |
+| 全量 4952 图 AP | 0.6014（历史单进程，门禁 0.570） | 待补 | 待补 |
+
+> 单核组吞吐低于整卡 1/4 是预期的：单进程形态只用一个核心组，而四核组的每核组吞吐会因
+> 梯度 all-reduce、CPU 数据加载与共享 IO 略降（2.5056 → 2.0051 imgs/s，−20%），所以整卡
+> 加速比是 **3.20×** 而不是理想 4.00×。
+
+原始件（窗口目录，不随仓库提交）：`/root/tmpwork/c49/runs/`（`ab-n1-r*` / `ab-n4-r*` /
+`ev-n1` / `ev-n4` / `full20-ddp4`），代码指纹 `/root/tmpwork/c49/code-sha256.txt`。
 
 ## 许可证与第三方归属
 
