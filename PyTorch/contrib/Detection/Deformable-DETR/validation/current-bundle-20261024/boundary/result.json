@@ -1,0 +1,75 @@
+{
+  "status": "full_20_epochs_complete",
+  "epoch": 20,
+  "batch_cursor": 0,
+  "global_step": 12520,
+  "invocation_steps": 0,
+  "completed_epochs": [
+    19
+  ],
+  "training_seconds": 1.7545905231963843,
+  "last_loss": null,
+  "evaluation": {
+    "images": 8,
+    "full_test": false,
+    "stats": {
+      "loss_ce": 0.22566437255591154,
+      "class_error": 2.7777786254882812,
+      "loss_bbox": 0.05234218342229724,
+      "loss_giou": 0.19328081980347633,
+      "cardinality_error": 292.125,
+      "loss_ce_0": 0.3171474505215883,
+      "loss_bbox_0": 0.048082176595926285,
+      "loss_giou_0": 0.20945309475064278,
+      "cardinality_error_0": 287.5,
+      "loss_ce_1": 0.26994771510362625,
+      "loss_bbox_1": 0.04076292598620057,
+      "loss_giou_1": 0.18475725036114454,
+      "cardinality_error_1": 290.625,
+      "loss_ce_2": 0.25651596300303936,
+      "loss_bbox_2": 0.04257544223219156,
+      "loss_giou_2": 0.1916988492012024,
+      "cardinality_error_2": 290.125,
+      "loss_ce_3": 0.25454838830046356,
+      "loss_bbox_3": 0.041473991703242064,
+      "loss_giou_3": 0.1877025319263339,
+      "cardinality_error_3": 292.375,
+      "loss_ce_4": 0.2334006605669856,
+      "loss_bbox_4": 0.043224272318184376,
+      "loss_giou_4": 0.18556952010840178,
+      "cardinality_error_4": 294.375,
+      "loss": 2.9781476084608585,
+      "coco_eval_bbox": [
+        0.5950391225243313,
+        0.8767598406182081,
+        0.7069083554696933,
+        0.19999999999999998,
+        0.5610419046712364,
+        0.6872557663929658,
+        0.46,
+        0.8,
+        0.8067857142857142,
+        0.2,
+        0.7666666666666666,
+        0.8833333333333334
+      ]
+    },
+    "world_size": 4,
+    "wall_seconds": 0.8456963198259473
+  },
+  "native_calls": {
+    "forward": 12,
+    "backward": 0
+  },
+  "rank": 0,
+  "world_size": 4,
+  "device": "sdaa:0",
+  "peak_allocated_mib": 1042.79248046875,
+  "peak_reserved_mib": 1184.0,
+  "checkpoint": "/root/tmpwork/fix-20261024/detr/runs/current-bundle-20261024-boundary/checkpoint.pth",
+  "limits": [
+    "native FP32 eager first-order MSDA with real DDP=4 over the four core groups (TCCL all-reduce); no AMP",
+    "official CPU Hungarian matching is retained",
+    "subset AP is diagnostic and does not meet the full test gate"
+  ]
+}

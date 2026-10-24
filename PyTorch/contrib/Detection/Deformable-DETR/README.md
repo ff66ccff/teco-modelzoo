@@ -379,3 +379,20 @@ ModelZoo 仅提供公共数据集的下载链接。这些公共数据集不属�
 **cycle-39 round-15 pin 说明（2026-10-18）**：本交付的 ops pin 由 `11cb85cbdc02470dde0a50d9777bb1e386501b9c` 前移至 **`60a40d756f85fa6c1ac9d4cb3563a5f3ffd9c7db`**——**回退** `11cb85c`（`perf(flash_attention): overlap the D512 tail V-panel staging with its PV GEMMs`）。回退依据（AGENTS 规则 7，稳定负优化）：该提交的**自身 11 例窗口 SUM = +0.153% / +0.151%（两窗，净负）**——目标例 `case_7` 确实 −3.990%/−3.920%，但其余 10 例一致回退 +0.19~0.53%（LTO 重链把 D128 段推离原位），故按逐例/求和双口径均不成立。保留 `fab1fa2`（flash_attention 首 tile rescale 跳过：D128 9 例 −0.89~−2.31%，11 例 SUM **−1.21%**，`max_error` 逐位不变）。
 **cycle-39 round-17 pin 说明（2026-10-18）**：本交付的 ops pin 由 `60a40d756f85fa6c1ac9d4cb3563a5f3ffd9c7db` 前移至 **`ce1a2ec00270bb5a519e235166427c255ef2af40`**（`ce1a2ec` `perf(build): swap the weight_stream_gemv and gather device sections into their measured fast slots`：在纯 TU 顺序上把 `weight_stream_gemv` 与 `zz_ms_deform_attn_backward_ha`(gather) **互换**——wsg 落到实测快地址 `0x23dd4`，而 `flash_d128`/`rms_norm_fp16`/`msda_fwd`/`msda_bwd_fp32`/`memset`/`rotary`/`flatten_rays` **全部保持原址**（这是 K3 做不到的）；官方固定形态**同窗同 root 从源码构建**双臂 A/B：wsg `case_0` 0.005718→**0.003871（−32.30%）**、`case_1` −2.03%、`ms_deform_attn_backward` **−1.15%**、`ms_deform_attn_forward` **−3.66%**、`reshape_and_cache` −0.36%/−0.58%、`memset` ±0.3%、`rotary` ±0.6%；39 例 SUM 9.414836→9.412432（−0.026%）、无 >±0.8% 回退（首窗 1-rep 的 µs 级“越带”已由 3-rep 复核证否）。**说明**：`wsg 快 + gather 原址`经结构性证明不可同时满足（wsg 快地址均低于其 base，而 gather 是其直接前驱、TU 不可拆）⇒ 本折中为 13 臂枚举最优。
 **cycle-40/42 pin 说明（2026-10-19）**：本交付的 ops pin 由 `ce1a2ec00270bb5a519e235166427c255ef2af40` 前移至 **`75588a996c3c1ac6f5239d5bd328bd8d5ea8c97e`**（团队 ops main）。区间 `ce1a2ec..75588a9` 共 8 个提交：`514f800` reduce_variance、`be4eb88` causal_conv1d、`731d3d0` flash_attention `vexp` rescale、`21dd896` causal_conv1d 注释、`5813b74` flash D128 `P^T→P` 16-lane、`e6ec6e9` / `35bf8f6` rms_norm C++ `out=` 入口注册、`75588a9` flash D128 异步 K 预取等。**本线可达性（本机静态核对 `git diff`，非设备实测）**：`git diff --stat ce1a2ec 75588a9` 只改 7 个文件 —— `api/torch_ext.cpp`（+92 行注册）、`teco/ual/kernel/causal_conv1d/causal_conv1d.scpp`、`teco/ual/kernel/flash_attention/flash_attention.scpp`、`teco/ual/kernel/reduce_variance/reduce_variance_axis_{left,middle,right}_float.scpp`、`teco/ual/kernel/zzz_flash_attention_d128/zzz_flash_attention_d128.scpp`；对本线使用的算子路径 `teco/ual/kernel/ms_deform*`、`teco/ual/kernel/flatten_rays*`、`teco/ual/kernel/morton3D_invert*`、`teco/interface/ops/ms_deform*`、`teco/ual/ops/ms_deform*` 执行 `git diff --stat ce1a2ec 75588a9 -- <上述路径>` 的**输出为空** ⇒ `ms_deform_attn` forward/backward、`flatten_rays`、`morton3D_invert` 的源码在该区间**未变化**。**未执行（如实标注）**：本窗口**未重建 whl、未跑任何训练/模型门禁**（本机为 Windows 开发机，无 SDAA 工具链）；`zzz_flash_attention_d128.scpp` 的体积变化会平移 device 镜像、**可能**改变 `ms_deform_attn` 的布局税，本轮**未测**；上方 whl 指纹表仍是 `54a1d65` 侧记录，不得当作本 pin 的产物。
+
+## 2026-10-24 当前算子构建的 DDP 退出与续训复核（2026-10-25 归档）
+
+`652e6df` 的训练入口在本队 ops 源码 `db1597e1265a5fc3e24207b793c9d1dd94327a24`
+的隔离安装上完成三个 DDP=4 有界窗口：末轮边界、训练 2 步、恢复后再训练 2 步。
+三窗均 **四 rank 的唯一 mapped core/extension SHA256 全部匹配，外层 rc=0**，
+无需 SIGKILL。末轮边界只评估一次，8 图子集 AP 与修前记录逐位相同；训练/续训两窗
+均实际执行 native forward/backward，各为 36/24 次，续训 global_step 2→4。
+
+当前 core SHA256 为 `531e0caf206a3c580e03f87965d067e44c0d88f8740a06a3d20abd88377574dc`，
+host extension 为 `82aa5455938789bc0009f85a947edfa271918a9d0b115866ad7f70bb57fbbf41`；
+这些是本轮实际映射产物，前面的旧 wheel 指纹仍仅作历史归档。
+原始结果、启动信息和四 rank 映射审计随包保存在
+`validation/current-bundle-20261024/{boundary,train2,resume2}/`。
+
+这是退出同步和有界训练/续训回归验证，8 图子集不替代此前 4952 图全量 AP 门禁；
+没有重跑 20 epoch，也不新增精度或性能提升主张。

@@ -1,0 +1,98 @@
+{
+  "official_commit": "1bda1f956a326d2601302413e4618c0fd109e799",
+  "assets": {
+    "pretrained_sha256": "d442fb2365d6e9640347b2b38686089d13cd55a5c3790d63e3602d079791fed1",
+    "train_json_sha256": "e511d3a0e39f45162887e4d9f0bed63bf8f01e4c421d965445185b72990f1ab5",
+    "val_json_sha256": "14edfb83a2525773c9e5b6e6d4bfa57a866de1cb3ca164c46afe0ac97629b561"
+  },
+  "entry_sha256": "40c5c49c86a27da18bc175b5991d78979157b08bba4815eea6ce955b05413099",
+  "vendor_manifest_sha256": "4bc34de500379e8da9d8116667b2bb6e0d302fed5e8e25f54f2f51d951d2280d",
+  "configuration": {
+    "lr": 8e-05,
+    "lr_backbone_names": [
+      "backbone.0"
+    ],
+    "lr_backbone": 8e-06,
+    "lr_linear_proj_names": [
+      "reference_points",
+      "sampling_offsets"
+    ],
+    "lr_linear_proj_mult": 0.1,
+    "batch_size": 2,
+    "weight_decay": 0.0001,
+    "epochs": 20,
+    "lr_drop": 14,
+    "lr_drop_epochs": null,
+    "clip_max_norm": 0.1,
+    "sgd": false,
+    "with_box_refine": false,
+    "two_stage": false,
+    "frozen_weights": null,
+    "backbone": "resnet50",
+    "dilation": false,
+    "position_embedding": "sine",
+    "position_embedding_scale": 6.283185307179586,
+    "num_feature_levels": 1,
+    "enc_layers": 6,
+    "dec_layers": 6,
+    "dim_feedforward": 1024,
+    "hidden_dim": 256,
+    "dropout": 0.1,
+    "nheads": 8,
+    "num_queries": 300,
+    "dec_n_points": 4,
+    "enc_n_points": 4,
+    "masks": false,
+    "aux_loss": true,
+    "set_cost_class": 2,
+    "set_cost_bbox": 5,
+    "set_cost_giou": 2,
+    "mask_loss_coef": 1,
+    "dice_loss_coef": 1,
+    "cls_loss_coef": 2,
+    "bbox_loss_coef": 5,
+    "giou_loss_coef": 2,
+    "focal_alpha": 0.25,
+    "dataset_file": "coco",
+    "coco_panoptic_path": null,
+    "remove_difficult": false,
+    "seed": 42,
+    "cache_mode": false,
+    "num_classes": 21,
+    "nproc_per_node": 4,
+    "distributed": true,
+    "world_size": 4,
+    "global_batch_size": 8
+  },
+  "load": {
+    "classifier_reinitialized": false,
+    "optimizer_restored": true,
+    "scheduler_restored": true,
+    "rng_restored": true,
+    "epoch": 19,
+    "batch_cursor": 626,
+    "global_step": 12520,
+    "exact_starting_state_tensor_counts": {
+      "model": 549,
+      "optimizer": 858,
+      "scheduler": 0,
+      "rng": 6
+    }
+  },
+  "native_extension": "/root/tmpwork/fix-20261024/team/src/install/tecoops/_torch_ext.cpython-312-loongarch64-linux-gnu.so",
+  "native_extension_sha256": "82aa5455938789bc0009f85a947edfa271918a9d0b115866ad7f70bb57fbbf41",
+  "mapped_cores": {
+    "/root/tmpwork/fix-20261024/team/src/install/tecoops/libteco_ops.so": "531e0caf206a3c580e03f87965d067e44c0d88f8740a06a3d20abd88377574dc"
+  },
+  "tecoops_file": "/root/tmpwork/fix-20261024/team/src/install/tecoops/__init__.py",
+  "dataset_counts": [
+    5011,
+    4952
+  ],
+  "rank": 0,
+  "world_size": 4,
+  "local_rank": 0,
+  "device": "sdaa:0",
+  "python": "/usr/local/python/bin/python3.12",
+  "torch": "2.12.0a0+git0d62256"
+}

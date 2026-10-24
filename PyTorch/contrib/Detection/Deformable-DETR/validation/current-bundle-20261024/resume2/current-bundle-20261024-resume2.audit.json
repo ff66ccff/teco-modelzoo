@@ -1,0 +1,70 @@
+{
+  "tag": "current-bundle-20261024-resume2",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=15s",
+    "180s",
+    "bash",
+    "run_scripts/test.sh",
+    "--output-dir",
+    "/root/tmpwork/fix-20261024/detr/runs/current-bundle-20261024-resume2",
+    "--max-train-steps",
+    "2",
+    "--eval-images",
+    "8",
+    "--resume",
+    "/root/tmpwork/fix-20261024/detr/runs/current-bundle-20261024-train2/checkpoint.pth"
+  ],
+  "started_unix": 1792851366.5417192,
+  "ended_unix": 1792851399.3731236,
+  "return_code": 0,
+  "source_sha256": "40c5c49c86a27da18bc175b5991d78979157b08bba4815eea6ce955b05413099",
+  "python_real": "/usr/local/python/bin/python3.12",
+  "tecoops_api_root": "/root/tmpwork/fix-20261024/team/src/install",
+  "ranks": [
+    {
+      "pid": 656874,
+      "rank": 0,
+      "core_maps": {
+        "/root/tmpwork/fix-20261024/team/src/install/tecoops/libteco_ops.so": "531e0caf206a3c580e03f87965d067e44c0d88f8740a06a3d20abd88377574dc"
+      },
+      "extension_maps": {
+        "/root/tmpwork/fix-20261024/team/src/install/tecoops/_torch_ext.cpython-312-loongarch64-linux-gnu.so": "82aa5455938789bc0009f85a947edfa271918a9d0b115866ad7f70bb57fbbf41"
+      }
+    },
+    {
+      "pid": 656873,
+      "rank": 1,
+      "core_maps": {
+        "/root/tmpwork/fix-20261024/team/src/install/tecoops/libteco_ops.so": "531e0caf206a3c580e03f87965d067e44c0d88f8740a06a3d20abd88377574dc"
+      },
+      "extension_maps": {
+        "/root/tmpwork/fix-20261024/team/src/install/tecoops/_torch_ext.cpython-312-loongarch64-linux-gnu.so": "82aa5455938789bc0009f85a947edfa271918a9d0b115866ad7f70bb57fbbf41"
+      }
+    },
+    {
+      "pid": 656872,
+      "rank": 2,
+      "core_maps": {
+        "/root/tmpwork/fix-20261024/team/src/install/tecoops/libteco_ops.so": "531e0caf206a3c580e03f87965d067e44c0d88f8740a06a3d20abd88377574dc"
+      },
+      "extension_maps": {
+        "/root/tmpwork/fix-20261024/team/src/install/tecoops/_torch_ext.cpython-312-loongarch64-linux-gnu.so": "82aa5455938789bc0009f85a947edfa271918a9d0b115866ad7f70bb57fbbf41"
+      }
+    },
+    {
+      "pid": 656875,
+      "rank": 3,
+      "core_maps": {
+        "/root/tmpwork/fix-20261024/team/src/install/tecoops/libteco_ops.so": "531e0caf206a3c580e03f87965d067e44c0d88f8740a06a3d20abd88377574dc"
+      },
+      "extension_maps": {
+        "/root/tmpwork/fix-20261024/team/src/install/tecoops/_torch_ext.cpython-312-loongarch64-linux-gnu.so": "82aa5455938789bc0009f85a947edfa271918a9d0b115866ad7f70bb57fbbf41"
+      }
+    }
+  ],
+  "all_four_rank_mappings_verified": true,
+  "all_rank_exit_zero": true,
+  "scope": "Bounded DDP lifecycle and native training/evaluation regression; not full-20-epoch accuracy."
+}

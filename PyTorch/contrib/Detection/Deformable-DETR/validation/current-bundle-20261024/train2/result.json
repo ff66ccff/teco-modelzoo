@@ -1,0 +1,73 @@
+{
+  "status": "bounded_training_checkpoint",
+  "epoch": 0,
+  "batch_cursor": 2,
+  "global_step": 2,
+  "invocation_steps": 2,
+  "completed_epochs": [],
+  "training_seconds": 2.2233241389039904,
+  "last_loss": 16.57200050354004,
+  "evaluation": {
+    "images": 8,
+    "full_test": false,
+    "stats": {
+      "loss_ce": 1.114665761590004,
+      "class_error": 100.0,
+      "loss_bbox": 0.03892105771228671,
+      "loss_giou": 0.1830815225839615,
+      "cardinality_error": 267.75,
+      "loss_ce_0": 1.1306233406066895,
+      "loss_bbox_0": 0.03809052798897028,
+      "loss_giou_0": 0.1941274804994464,
+      "cardinality_error_0": 291.625,
+      "loss_ce_1": 1.1306404173374176,
+      "loss_bbox_1": 0.037597404792904854,
+      "loss_giou_1": 0.18712191749364138,
+      "cardinality_error_1": 290.625,
+      "loss_ce_2": 1.1341563016176224,
+      "loss_bbox_2": 0.03675761725753546,
+      "loss_giou_2": 0.191164362244308,
+      "cardinality_error_2": 281.0,
+      "loss_ce_3": 1.122831553220749,
+      "loss_bbox_3": 0.03764615301042795,
+      "loss_giou_3": 0.18142647948116064,
+      "cardinality_error_3": 274.0,
+      "loss_ce_4": 1.1236020773649216,
+      "loss_bbox_4": 0.03830728679895401,
+      "loss_giou_4": 0.18229319155216217,
+      "cardinality_error_4": 271.25,
+      "loss": 8.103054453153163,
+      "coco_eval_bbox": [
+        0.00100990099009901,
+        0.0033663366336633667,
+        0.0,
+        0.0,
+        0.0,
+        0.0024045261669024044,
+        0.0,
+        0.015,
+        0.015,
+        0.0,
+        0.0,
+        0.02142857142857143
+      ]
+    },
+    "world_size": 4,
+    "wall_seconds": 0.7811358708422631
+  },
+  "native_calls": {
+    "forward": 36,
+    "backward": 24
+  },
+  "rank": 0,
+  "world_size": 4,
+  "device": "sdaa:0",
+  "peak_allocated_mib": 1674.4814453125,
+  "peak_reserved_mib": 2178.0,
+  "checkpoint": "/root/tmpwork/fix-20261024/detr/runs/current-bundle-20261024-train2/checkpoint.pth",
+  "limits": [
+    "native FP32 eager first-order MSDA with real DDP=4 over the four core groups (TCCL all-reduce); no AMP",
+    "official CPU Hungarian matching is retained",
+    "subset AP is diagnostic and does not meet the full test gate"
+  ]
+}
