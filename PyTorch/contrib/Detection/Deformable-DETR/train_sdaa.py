@@ -359,6 +359,16 @@ def rank_batches(global_batches, batch_size, rank, cursor):
 
 
 def main(args):
+    try:
+        return run_training(args)
+    finally:
+        # Each trainer owns its TCCL group; release it before interpreter shutdown,
+        # including when validation or checkpoint restoration raises an error.
+        if dist.is_initialized():
+            dist.destroy_process_group()
+
+
+def run_training(args):
     # Interpreter capabilities are enforced by the import-time capability
     # contract above; the SDAA device itself is re-checked here.
     rank, world, local_rank = distributed_env()
@@ -552,6 +562,7 @@ def main(args):
     completed_epochs = []
     last_loss = None
     last_evaluation = None
+    evaluated_epoch = None
     stop = args.eval
     log_context = ((output / "steps.jsonl").open("x", buffering=1) if rank == 0
                    else contextlib.nullcontext())
@@ -650,13 +661,16 @@ def main(args):
                     last_evaluation = evaluate_model(
                         raw_model, criterion, postprocessors, dataset_val, args, device,
                         output, logger, "evaluation-epoch-%02d.json" % epoch, rank, world)
+                    evaluated_epoch = epoch
     training_seconds = time.monotonic() - started
     if not args.eval:
         save_checkpoint(output / "checkpoint.pth", raw_model, optimizer, scheduler,
                         args, epoch, cursor, global_step, assets, rank, world, "final")
     # A bounded run evaluates the requested subset explicitly. Only the default
     # full evaluator may produce a competition AP result.
-    if epoch == 20 and last_evaluation is not None:
+    # evaluate_model returns the result only on rank0. Collective control flow
+    # must use completion shared by every rank, not that rank-local payload.
+    if epoch == 20 and evaluated_epoch == epoch:
         evaluation = last_evaluation
         if rank == 0:
             atomic_json(output / "evaluation.json", evaluation)

@@ -316,7 +316,7 @@ SHA-256 = `5c267322…`/`e7722cbc…`，见 §2.3 表）；A/B 两臂同一窗�
 - 逐 epoch AP@[.5:.95]：`0.46920, 0.53328, 0.54788, 0.55697, 0.55573, 0.56544, 0.56703, 0.56272, 0.56148, 0.56010, 0.55653, 0.56225, 0.55823, 0.56732, 0.58158, 0.58596, 0.58905, 0.58838, 0.58693, 0.59237`（首个 ≥0.570 为 ep15，best = ep20 即最终权重）。
 - **单进程复核**：同一 checkpoint 用 `--nproc_per_node 1 --eval` 在 4952 图上重算，AP 与分布式评估**逐位相同**（12 项 COCO 指标 ndiff=0）⇒ 分布式评估没有改变精度口径，AP 差异不是评估方式造成的。
 - 与历史单进程 20 epoch（0.6014）相比低 **0.0090**：主要来自 4× 全局 batch + linear lr scaling 的训练动力学差异；两者都过 0.570 门禁（本 run 余量 +0.0224）。
-- **异常披露**：训练在 2026-10-21T10:37:44Z 写完 `result.json`/`evaluation.json`/`checkpoint.pth` 后，3 个 rank 停在 vendor teardown（`acts_stream_sync`）；为让后续单进程复核评估拿到卡，对残留 rank 做了 SIGKILL ⇒ 外层 `run.sh` 的退出码记为 137。**训练本身 20/20 epoch 完整、产物齐全**（`result.json` 的 `status=full_20_epochs_complete`、`global_step=12520`），不是训练失败。
+- **历史异常披露与修复**：旧 head 在最后一轮评估后只让 rank0 看到 `last_evaluation != None`，rank1–3 又进入一次 `evaluate_model`，在 `SetCriterion` 的 `num_boxes` all-reduce 处等待 rank0，随后才被外层 SIGKILL，故旧 `run.sh` 退出码为 137。修复后的入口用所有 rank 共同更新的 `evaluated_epoch` 控制末轮结果复用，并在 `finally` 显式 `destroy_process_group()`；候选边界 DDP=4 复现 **rc=0**，各 rank 只进入一次 `evaluation-epoch-20`。**训练本身 20/20 epoch 完整、产物齐全**（`result.json` 的 `status=full_20_epochs_complete`、`global_step=12520`），不是训练失败。
 - 原始件：`/root/tmpwork/c49/runs/{full20-ddp4,full20-eval-n1}/` 与 `/root/tmpwork/c49/RESULTS.md`（窗口目录，不随仓库提交）。
 
 原始件（窗口目录，不随仓库提交）：`/root/tmpwork/c49/runs/`（`ab-n1-r*` / `ab-n4-r*` /
